@@ -398,18 +398,11 @@ public class LoginView {
             return;
         }
 
-        String remember = rememberMe.isSelected() ? " (will be remembered)" : "";
-        // Navigate to Dashboard if stage is provided, otherwise fallback to info alert
+        // Navigate to Dashboard if stage is provided
         if (hostStage != null && hostStage.getScene() != null) {
-            // Use constructor injection so service can be swapped later (e.g., JDBC)
-            DashboardAdmin.DashboardService svc = new DashboardAdmin.InMemoryDashboardService();
-            hostStage.getScene().setRoot(new DashboardAdmin(svc).build());
+            hostStage.getScene().setRoot(new AdminDashboard(hostStage).build());
         } else {
-            Alert a = new Alert(Alert.AlertType.INFORMATION);
-            a.setTitle("Login Successful");
-            a.setHeaderText(null);
-            a.setContentText("Welcome back, " + username + "!" + remember);
-            a.showAndWait();
+            showInfo("Login Successful", "Welcome back, " + username + "!");
         }
         passwordField.clear();
         passwordVisibleField.clear();
