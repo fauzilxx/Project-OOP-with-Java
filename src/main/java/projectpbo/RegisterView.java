@@ -73,7 +73,6 @@ public class RegisterView {
         StackPane stack = new StackPane();
         stack.setStyle("-fx-background-color: linear-gradient(to bottom right, #075985, #06b6d4);");
         stack.setPadding(new Insets(36));
-
         StackPane card = new StackPane();
         card.setPrefWidth(560);
         card.setPrefHeight(520);

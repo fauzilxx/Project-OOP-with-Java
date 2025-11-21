@@ -234,9 +234,6 @@ public class LoginView {
         eyeBtn.setStyle("-fx-background-color: transparent;");
         eyeBtn.setOnAction(e -> togglePassword(eyeView));
 
-
-
-
         // Build a responsive password row (stack fills remaining width minus eye button)
         HBox passwordRow = stackPasswordFields(passwordField, passwordVisibleField, eyeBtn);
         passwordRow.setAlignment(Pos.CENTER_LEFT);

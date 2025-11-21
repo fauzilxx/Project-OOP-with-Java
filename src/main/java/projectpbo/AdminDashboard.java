@@ -96,7 +96,9 @@ public class AdminDashboard {
         grid.add(createDashboardCard("calendar.png","ANTRIAN HARI INI","12","Menunggu","#f97316", () -> {
             if(stage!=null && stage.getScene()!=null) stage.getScene().setRoot(QueueView.createRoot(stage));
         }),2,0);
-        grid.add(createDashboardCard("door_open.png","KETERSEDIAAN KAMAR","8","Kamar Tersedia","#6366f1", () -> showInfo("Info","Fitur belum tersedia")),0,1);
+        grid.add(createDashboardCard("door_open.png","KETERSEDIAAN KAMAR","8","Kamar Tersedia","#6366f1", () -> {
+            if(stage!=null && stage.getScene()!=null) stage.getScene().setRoot(RoomBookingView.createRoot(stage));
+        }),0,1);
         grid.add(createDashboardCard("pills.png","PEMESANAN OBAT","23","Pesanan Hari Ini","#8b5cf6", () -> showInfo("Info","Fitur belum tersedia")),1,1);
         grid.add(createDashboardCard("wallet.png","PENDAPATAN","Rp 15.2 Jt","Hari Ini","#ef4444", () -> showInfo("Info","Fitur belum tersedia")),2,1);
 

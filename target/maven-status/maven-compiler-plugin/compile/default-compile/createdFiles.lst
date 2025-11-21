@@ -1,3 +1,4 @@
+projectpbo\RoomBookingView$RoomType.class
 projectpbo\AdminDashboard$1.class
 projectpbo\InpatientView$Inpatient.class
 projectpbo\ForgotPasswordView.class
@@ -7,6 +8,8 @@ projectpbo\OutpatientView$Outpatient.class
 projectpbo\QueueView$QueueEntry.class
 projectpbo\InpatientView.class
 projectpbo\LoginView.class
+projectpbo\RoomBookingView$Booking.class
 projectpbo\RegisterView.class
+projectpbo\RoomBookingView.class
 projectpbo\MainApp.class
 projectpbo\OutpatientView.class
