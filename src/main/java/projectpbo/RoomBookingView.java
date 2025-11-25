@@ -75,7 +75,7 @@ public class RoomBookingView {
         HBox header = new HBox(16); header.setPadding(new Insets(14,32,14,32)); header.setAlignment(Pos.CENTER_LEFT);
         header.setStyle("-fx-background-color:white; -fx-effect:dropshadow(gaussian, rgba(0,0,0,0.06),12,0,0,4);");
         Label title = new Label("PEMESANAN KAMAR RAWAT INAP"); title.setFont(Font.font("System", FontWeight.BOLD,16)); title.setTextFill(Color.web("#0f172a"));
-        Button backBtn = new Button("← Kembali"); backBtn.setStyle(primaryTextButton()); backBtn.setOnAction(e -> stage.getScene().setRoot(new AdminDashboard(stage).build()));
+        Button backBtn = new Button("← Kembali"); backBtn.setStyle(primaryTextButton()); backBtn.setCursor(Cursor.HAND); backBtn.setOnAction(e -> stage.getScene().setRoot(new AdminDashboard(stage).build()));
         Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
         header.getChildren().addAll(backBtn, spacer, title);
         return header;
@@ -166,6 +166,7 @@ public class RoomBookingView {
         dialog.getDialogPane().setContent(dp);
         dialog.setResultConverter(bt -> bt==ButtonType.OK? dp.getValue() : null);
         LocalDate out = dialog.showAndWait().orElse(null); if(out==null) return; LocalDate in = LocalDate.parse(sel.getCheckIn());
+        if(out.isBefore(in)){ new Alert(Alert.AlertType.ERROR, "Tanggal checkout tidak boleh sebelum check-in!", ButtonType.OK).showAndWait(); return; }
         long days = Math.max(1, ChronoUnit.DAYS.between(in,out));
         long cost = days * sel.getRoomType().pricePerDay;
         sel.checkOutProperty().set(out.toString()); sel.daysProperty().set(String.valueOf(days)); sel.costProperty().set(formatCurrency(cost)); table.refresh();

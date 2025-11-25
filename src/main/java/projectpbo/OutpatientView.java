@@ -51,6 +51,7 @@ public class OutpatientView {
 
         Button backBtn = new Button("← Kembali");
         backBtn.setStyle(primaryTextButton());
+        backBtn.setCursor(javafx.scene.Cursor.HAND);
         backBtn.setOnAction(e -> stage.getScene().setRoot(new AdminDashboard(stage).build()));
 
         Region spacer = new Region();
@@ -93,7 +94,8 @@ public class OutpatientView {
         table.getColumns().add(scheduleCol);
         table.getColumns().add(doctorCol);
 
-        seedData();
+        // Load data from database
+        masterData.setAll(Outpatient.fetchAll());
         FilteredList<Outpatient> filtered = new FilteredList<>(masterData, p -> true);
         searchField.textProperty().addListener((obs, old, val) -> {
             String q = val == null ? "" : val.toLowerCase();
@@ -148,6 +150,8 @@ public class OutpatientView {
                 sel.complaintProperty().set(fComplaint.getText().trim());
                 sel.scheduleProperty().set(dateStr+" "+timeStr);
                 sel.doctorProperty().set(fDoctor.getText().trim());
+                // Persist update
+                Outpatient.update(sel);
                 table.refresh();
                 fName.clear(); fNumber.clear(); fComplaint.clear(); fTime.clear(); fDoctor.clear(); fDate.setValue(null); saveBtn.setDisable(true);
             }
@@ -157,7 +161,7 @@ public class OutpatientView {
         Button delBtn = new Button("Hapus Terpilih"); delBtn.setStyle(dangerButton());
         delBtn.setOnMouseEntered(e -> delBtn.setStyle("-fx-background-color:#ef4444; -fx-text-fill:white; -fx-font-weight:600; -fx-background-radius:8; -fx-cursor: hand;"));
         delBtn.setOnMouseExited(e -> delBtn.setStyle(dangerButton()));
-        delBtn.setOnAction(e -> { Outpatient sel = table.getSelectionModel().getSelectedItem(); if (sel != null) masterData.remove(sel); });
+        delBtn.setOnAction(e -> { Outpatient sel = table.getSelectionModel().getSelectedItem(); if (sel != null) { if (Outpatient.delete(sel)) masterData.remove(sel); } });
 
         searchField.setOnKeyPressed(k -> { if (k.getCode()== KeyCode.ENTER) table.requestFocus(); });
 
@@ -170,23 +174,14 @@ public class OutpatientView {
         String dateStr = java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy").format(fDate.getValue());
         String timeStr = fTime.getText().trim();
         if(!timeStr.matches("^[0-2]\\d:[0-5]\\d$")) timeStr = "00:00";
-        String schedule = dateStr + " " + timeStr;
-        masterData.add(new Outpatient(fName.getText().trim(), fNumber.getText().trim(), fComplaint.getText().trim(), schedule, fDoctor.getText().trim()));
+        String scheduleDisplay = dateStr + " " + timeStr; // for UI
+        java.time.LocalDateTime scheduleDb;
+        try {
+            scheduleDb = java.time.LocalDateTime.parse(scheduleDisplay, java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy HH:mm"));
+        } catch(Exception ex) { scheduleDb = null; }
+        Outpatient created = Outpatient.add(fName.getText().trim(), fNumber.getText().trim(), fComplaint.getText().trim(), scheduleDb, fDoctor.getText().trim());
+        if(created!=null) masterData.add(0, created);
         fName.clear(); fNumber.clear(); fComplaint.clear(); fTime.clear(); fDoctor.clear(); fDate.setValue(null);
-    }
-
-    private void seedData() {
-        if(!masterData.isEmpty()) return;
-        java.time.LocalDate today = java.time.LocalDate.now();
-        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy");
-        masterData.addAll(
-            new Outpatient("Sari Utami","OP0001","Demam",fmt.format(today)+" 09:00","Dr. Salim"),
-            new Outpatient("Rizky Pratama","OP0002","Batuk",fmt.format(today)+" 09:30","Dr. Kejora"),
-            new Outpatient("Lina Marlina","OP0003","Pusing",fmt.format(today)+" 10:00","Dr. Dewi"),
-            new Outpatient("Tono Susanto","OP0004","Nyeri Kepala",fmt.format(today)+" 10:30","Dr. Rahman"),
-            new Outpatient("Maya Anindya","OP0005","Kontrol Luka",fmt.format(today.plusDays(1))+" 11:00","Dr. Fadli"),
-            new Outpatient("Yoga Firdaus","OP0006","Alergi",fmt.format(today.plusDays(1))+" 11:30","Dr. Gita")
-        );
     }
 
     private TextField makeSmallField(String prompt) {
@@ -198,24 +193,5 @@ public class OutpatientView {
     private String dangerButton() { return "-fx-background-color:#dc2626; -fx-text-fill:white; -fx-font-weight:600; -fx-background-radius:8;"; }
     private String primaryTextButton() { return "-fx-background-color:transparent; -fx-text-fill:#0f766e; -fx-font-weight:600;"; }
 
-    public static class Outpatient {
-        private final javafx.beans.property.SimpleStringProperty name;
-        private final javafx.beans.property.SimpleStringProperty patientNumber;
-        private final javafx.beans.property.SimpleStringProperty complaint;
-        private final javafx.beans.property.SimpleStringProperty schedule;
-        private final javafx.beans.property.SimpleStringProperty doctor;
-        public Outpatient(String n,String num,String comp,String sched,String doc){
-            this.name = new javafx.beans.property.SimpleStringProperty(n);
-            this.patientNumber = new javafx.beans.property.SimpleStringProperty(num);
-            this.complaint = new javafx.beans.property.SimpleStringProperty(comp);
-            this.schedule = new javafx.beans.property.SimpleStringProperty(sched);
-            this.doctor = new javafx.beans.property.SimpleStringProperty(doc);
-        }
-        public String getName(){return name.get();} public javafx.beans.property.StringProperty nameProperty(){return name;}
-        public String getPatientNumber(){return patientNumber.get();} public javafx.beans.property.StringProperty patientNumberProperty(){return patientNumber;}
-        public String getComplaint(){return complaint.get();} public javafx.beans.property.StringProperty complaintProperty(){return complaint;}
-        public String getSchedule(){return schedule.get();} public javafx.beans.property.StringProperty scheduleProperty(){return schedule;}
-        public String getDoctor(){return doctor.get();} public javafx.beans.property.StringProperty doctorProperty(){return doctor;}
-        public boolean matches(String q){ if(q.isBlank()) return true; String all=(getName()+" "+getPatientNumber()+" "+getComplaint()+" "+getSchedule()+" "+getDoctor()).toLowerCase(); return all.contains(q); }
-    }
+    // Nested Outpatient class removed; using DB-backed model Outpatient.java
 }

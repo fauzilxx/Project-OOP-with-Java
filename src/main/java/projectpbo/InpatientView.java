@@ -53,6 +53,7 @@ public class InpatientView {
 
         Button backBtn = new Button("← Kembali");
         backBtn.setStyle(primaryTextButton());
+        backBtn.setCursor(javafx.scene.Cursor.HAND);
         backBtn.setOnAction(e -> stage.getScene().setRoot(new AdminDashboard(stage).build()));
 
         Region spacer = new Region();
@@ -95,8 +96,8 @@ public class InpatientView {
         doctorCol.setCellValueFactory(c -> c.getValue().doctorProperty());
         table.getColumns().addAll(nameCol, numberCol, illnessCol, roomCol, doctorCol);
 
-        // Data
-        seedData();
+        // Load data from database (now via Inpatient static methods)
+        masterData.setAll(Inpatient.fetchAll());
         FilteredList<Inpatient> filtered = new FilteredList<>(masterData, p -> true);
         searchField.textProperty().addListener((obs, old, val) -> {
             String q = val == null ? "" : val.toLowerCase();
@@ -140,12 +141,12 @@ public class InpatientView {
         saveBtn.setOnAction(e -> {
             Inpatient sel = table.getSelectionModel().getSelectedItem();
             if(sel!=null){
-                // update properties
                 sel.nameProperty().set(fName.getText());
                 sel.patientNumberProperty().set(fNumber.getText());
                 sel.illnessProperty().set(fIllness.getText());
                 sel.roomProperty().set(fRoom.getText());
                 sel.doctorProperty().set(fDoctor.getText());
+                Inpatient.update(sel);
                 table.refresh();
                 fName.clear(); fNumber.clear(); fIllness.clear(); fRoom.clear(); fDoctor.clear();
                 saveBtn.setDisable(true);
@@ -160,7 +161,7 @@ public class InpatientView {
         delBtn.setOnMouseExited(e -> delBtn.setStyle(dangerButton()));
         delBtn.setOnAction(e -> {
             Inpatient sel = table.getSelectionModel().getSelectedItem();
-            if (sel != null) masterData.remove(sel);
+            if (sel != null && Inpatient.delete(sel)) masterData.remove(sel);
         });
 
         // Allow Enter key to trigger show (focus table)
@@ -178,20 +179,9 @@ public class InpatientView {
 
     private void addPatient(TextField fName, TextField fNumber, TextField fIllness, TextField fRoom, TextField fDoctor) {
         if (fName.getText().isBlank() || fNumber.getText().isBlank()) return;
-        masterData.add(new Inpatient(fName.getText(), fNumber.getText(), fIllness.getText(), fRoom.getText(), fDoctor.getText()));
+        Inpatient added = Inpatient.add(fName.getText(), fNumber.getText(), fIllness.getText(), fRoom.getText(), fDoctor.getText());
+        if (added != null) masterData.add(0, added);
         fName.clear(); fNumber.clear(); fIllness.clear(); fRoom.clear(); fDoctor.clear();
-    }
-
-    private void seedData() {
-        if (!masterData.isEmpty()) return;
-        masterData.addAll(
-            new Inpatient("Ahmad Wijaya", "RM001234", "Demam Berdarah", "A-12", "Dr. Salim"),
-            new Inpatient("Siti Nurhaliza", "RM001235", "Infeksi Paru", "B-07", "Dr. Kejora"),
-            new Inpatient("Budi Santoso", "RM001236", "Patah Tulang", "Ortho-03", "Dr. Dewi"),
-            new Inpatient("Dewi Lestari", "RM001237", "Pneumonia", "C-05", "Dr. Rahman"),
-            new Inpatient("Eko Prasetyo", "RM001238", "COVID-19", "Isolasi-02", "Dr. Fadli"),
-            new Inpatient("Guntur Wibowo", "RM001240", "Gagal Ginjal", "Dialisis-01", "Dr. Gita")
-        );
     }
 
     private TextField makeSmallField(String prompt) {
@@ -216,34 +206,5 @@ public class InpatientView {
         return "-fx-background-color:transparent; -fx-text-fill:#0f766e; -fx-font-weight:600;";
     }
 
-    // Data model inner class (could be moved to separate file later)
-    public static class Inpatient {
-        final javafx.beans.property.SimpleStringProperty name;
-        final javafx.beans.property.SimpleStringProperty patientNumber;
-        final javafx.beans.property.SimpleStringProperty illness;
-        final javafx.beans.property.SimpleStringProperty room;
-        final javafx.beans.property.SimpleStringProperty doctor;
-        public Inpatient(String name, String patientNumber, String illness, String room, String doctor) {
-            this.name = new javafx.beans.property.SimpleStringProperty(name);
-            this.patientNumber = new javafx.beans.property.SimpleStringProperty(patientNumber);
-            this.illness = new javafx.beans.property.SimpleStringProperty(illness);
-            this.room = new javafx.beans.property.SimpleStringProperty(room);
-            this.doctor = new javafx.beans.property.SimpleStringProperty(doctor);
-        }
-        public String getName() { return name.get(); }
-        public javafx.beans.property.StringProperty nameProperty() { return name; }
-        public String getPatientNumber() { return patientNumber.get(); }
-        public javafx.beans.property.StringProperty patientNumberProperty() { return patientNumber; }
-        public String getIllness() { return illness.get(); }
-        public javafx.beans.property.StringProperty illnessProperty() { return illness; }
-        public String getRoom() { return room.get(); }
-        public javafx.beans.property.StringProperty roomProperty() { return room; }
-        public String getDoctor() { return doctor.get(); }
-        public javafx.beans.property.StringProperty doctorProperty() { return doctor; }
-        public boolean matches(String q) {
-            if (q.isBlank()) return true;
-            String all = (getName()+" "+getPatientNumber()+" "+getIllness()+" "+getRoom()+" "+getDoctor()).toLowerCase();
-            return all.contains(q);
-        }
-    }
+    // Inner Inpatient class removed; using database-backed model in separate file.
 }

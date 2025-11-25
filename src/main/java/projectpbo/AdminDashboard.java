@@ -50,32 +50,36 @@ public class AdminDashboard {
         header.setAlignment(Pos.CENTER_LEFT);
         header.setStyle("-fx-background-color: white; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06),12,0,0,4);");
 
-        ImageView backIcon = createIcon("/assets/arrow_back.png", 18, "#64748b");
-        ImageView forwardIcon = createIcon("/assets/arrow_forward.png", 18, "#64748b");
-        ImageView homeIcon = createIcon("/assets/home-icon.png", 18, "#0d9488");
-        ImageView logoutIcon = createIcon("/assets/logout-icon.png", 18, "#dc2626");
-
-        addNavHover(backIcon);
-        addNavHover(forwardIcon);
-        addNavHover(homeIcon);
-        addNavHover(logoutIcon);
-
-        backIcon.setOnMouseClicked(e -> showInfo("Navigasi", "Fitur Back belum tersedia."));
-        forwardIcon.setOnMouseClicked(e -> showInfo("Navigasi", "Fitur Forward belum tersedia."));
-        homeIcon.setOnMouseClicked(e -> { if(stage!=null && stage.getScene()!=null) stage.getScene().setRoot(build()); });
-        logoutIcon.setOnMouseClicked(e -> { if(stage!=null && stage.getScene()!=null) stage.getScene().setRoot(LoginView.createRoot(stage)); });
-
         Label title = new Label("NASIHUY HOSPITAL");
-        title.setFont(Font.font("System", FontWeight.BOLD, 16));
+        title.setFont(Font.font("System", FontWeight.BOLD, 18));
         title.setTextFill(Color.web("#052b4c"));
 
-        HBox leftGroup = new HBox(12, backIcon, forwardIcon, homeIcon);
-        leftGroup.setAlignment(Pos.CENTER_LEFT);
-        HBox rightGroup = new HBox(16, title, logoutIcon);
-        rightGroup.setAlignment(Pos.CENTER_RIGHT);
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        header.getChildren().addAll(leftGroup, spacer, rightGroup);
+
+        HBox logoutBtn = new HBox(8);
+        logoutBtn.setAlignment(Pos.CENTER);
+        logoutBtn.setPadding(new Insets(8, 16, 8, 16));
+        logoutBtn.setStyle("-fx-background-color: #fee2e2; -fx-background-radius: 8; -fx-cursor: hand;");
+        
+        ImageView lIcon = createIcon("/assets/logout-icon.png", 18, "#dc2626");
+        Label lText = new Label("Logout");
+        lText.setTextFill(Color.web("#dc2626"));
+        lText.setFont(Font.font("System", FontWeight.BOLD, 13));
+        
+        logoutBtn.getChildren().addAll(lIcon, lText);
+        
+        logoutBtn.setOnMouseEntered(e -> { 
+            logoutBtn.setStyle("-fx-background-color: #fecaca; -fx-background-radius: 8; -fx-cursor: hand;"); 
+            smoothScale(logoutBtn, 1.05); 
+        });
+        logoutBtn.setOnMouseExited(e -> { 
+            logoutBtn.setStyle("-fx-background-color: #fee2e2; -fx-background-radius: 8; -fx-cursor: hand;"); 
+            smoothScale(logoutBtn, 1.0); 
+        });
+        logoutBtn.setOnMouseClicked(e -> { if(stage!=null && stage.getScene()!=null) stage.getScene().setRoot(LoginView.createRoot(stage)); });
+
+        header.getChildren().addAll(title, spacer, logoutBtn);
         return header;
     }
 
@@ -87,20 +91,24 @@ public class AdminDashboard {
         GridPane grid = new GridPane();
         grid.setHgap(32); grid.setVgap(32); grid.setAlignment(Pos.CENTER);
 
-        grid.add(createDashboardCard("bed.png","PASIEN RAWAT INAP","19","Pasien","#3b82f6", () -> {
+        grid.add(createDashboardCard("bed.png","PASIEN RAWAT INAP", String.valueOf(Inpatient.count()),"Pasien","#3b82f6", () -> {
             if(stage!=null && stage.getScene()!=null) stage.getScene().setRoot(InpatientView.createRoot(stage));
         }),0,0);
-        grid.add(createDashboardCard("stetoschope.png","PASIEN RAWAT JALAN","47","Pasien","#10b981", () -> {
+        grid.add(createDashboardCard("stetoschope.png","PASIEN RAWAT JALAN", String.valueOf(Outpatient.count()),"Pasien","#10b981", () -> {
             if(stage!=null && stage.getScene()!=null) stage.getScene().setRoot(OutpatientView.createRoot(stage));
         }),1,0);
-        grid.add(createDashboardCard("calendar.png","ANTRIAN HARI INI","12","Menunggu","#f97316", () -> {
+        grid.add(createDashboardCard("calendar.png","ANTRIAN HARI INI", String.valueOf(Queue.countWaiting()),"Menunggu","#f97316", () -> {
             if(stage!=null && stage.getScene()!=null) stage.getScene().setRoot(QueueView.createRoot(stage));
         }),2,0);
         grid.add(createDashboardCard("door_open.png","KETERSEDIAAN KAMAR","8","Kamar Tersedia","#6366f1", () -> {
             if(stage!=null && stage.getScene()!=null) stage.getScene().setRoot(RoomBookingView.createRoot(stage));
         }),0,1);
-        grid.add(createDashboardCard("pills.png","PEMESANAN OBAT","23","Pesanan Hari Ini","#8b5cf6", () -> showInfo("Info","Fitur belum tersedia")),1,1);
-        grid.add(createDashboardCard("wallet.png","PENDAPATAN","Rp 15.2 Jt","Hari Ini","#ef4444", () -> showInfo("Info","Fitur belum tersedia")),2,1);
+        grid.add(createDashboardCard("pills.png","PEMESANAN OBAT","23","Pesanan Hari Ini","#8b5cf6", () -> {
+            if(stage!=null && stage.getScene()!=null) stage.getScene().setRoot(DrugOrderView.createRoot(stage));
+        }),1,1);
+        grid.add(createDashboardCard("wallet.png","PENDAPATAN","Rp 15.2 Jt","Hari Ini","#ef4444", () -> {
+            if(stage!=null && stage.getScene()!=null) stage.getScene().setRoot(RevenueView.createRoot(stage));
+        }),2,1);
 
         HBox bottom = new HBox(32); bottom.setAlignment(Pos.CENTER);
         VBox patientList = createPatientList();
@@ -141,11 +149,14 @@ public class AdminDashboard {
     }
 
     private VBox createPatientList() {
-        ObservableList<String> patients = FXCollections.observableArrayList(
-            "Ahmad Wijaya - RM001234","Siti Nurhaliza - RM001235","Budi Santoso - RM001236",
-            "Dewi Lestari - RM001237","Eko Prasetyo - RM001238","Fitri Handayani - RM001239",
-            "Guntur Wibowo - RM001240"
-        );
+        ObservableList<String> patients = FXCollections.observableArrayList();
+        // Combine inpatient + outpatient patients from DB
+        for (Inpatient ip : Inpatient.fetchAll()) {
+            patients.add(ip.getName() + " - " + ip.getPatientNumber());
+        }
+        for (Outpatient op : Outpatient.fetchAll()) {
+            patients.add(op.getName() + " - " + op.getPatientNumber());
+        }
         return createTitledList("DAFTAR PASIEN RUMAH SAKIT","Cari daftar pasien rumah sakit...",patients);
     }
     private VBox createDoctorList() {
@@ -212,7 +223,7 @@ public class AdminDashboard {
     }
 
     private void smoothScale(javafx.scene.Node node, double target) {
-        ScaleTransition st = new ScaleTransition(Duration.millis(140), node);
+        ScaleTransition st = new ScaleTransition(Duration.millis(300), node);
         st.setToX(target); st.setToY(target); st.setInterpolator(Interpolator.EASE_BOTH); st.play();
     }
 

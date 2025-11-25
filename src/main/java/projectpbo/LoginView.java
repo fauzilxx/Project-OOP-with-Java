@@ -3,6 +3,7 @@ package projectpbo;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -233,6 +234,7 @@ public class LoginView {
         eyeBtn.setGraphic(eyeView);
         eyeBtn.setStyle("-fx-background-color: transparent;");
         eyeBtn.setOnAction(e -> togglePassword(eyeView));
+        eyeBtn.setCursor(Cursor.HAND);
 
         // Build a responsive password row (stack fills remaining width minus eye button)
         HBox passwordRow = stackPasswordFields(passwordField, passwordVisibleField, eyeBtn);
@@ -252,6 +254,8 @@ public class LoginView {
 
         rememberMe = new CheckBox("Remember me");
         rememberMe.setFont(Font.font(13));
+        rememberMe.setCursor(Cursor.HAND);
+
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -274,6 +278,7 @@ public class LoginView {
         loginBtn.setMaxWidth(Double.MAX_VALUE);
         loginBtn.setStyle(buttonMedicalStyle());
         loginBtn.setOnAction(e -> handleLogin());
+        loginBtn.setCursor(Cursor.HAND);
 
         HBox registerBox = new HBox();
         registerBox.setAlignment(Pos.CENTER);
@@ -395,14 +400,23 @@ public class LoginView {
             return;
         }
 
-        // Navigate to Dashboard if stage is provided
-        if (hostStage != null && hostStage.getScene() != null) {
-            hostStage.getScene().setRoot(new AdminDashboard(hostStage).build());
+        // Verify credentials with database
+        if (DBConnection.login(username, password)) {
+            // Navigate to Dashboard if stage is provided
+            if (hostStage != null && hostStage.getScene() != null) {
+                hostStage.getScene().setRoot(new AdminDashboard(hostStage).build());
+            } else {
+                showInfo("Login Successful", "Welcome back, " + username + "!");
+            }
+            passwordField.clear();
+            passwordVisibleField.clear();
         } else {
-            showInfo("Login Successful", "Welcome back, " + username + "!");
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Login Failed");
+            alert.setHeaderText(null);
+            alert.setContentText("Username atau password salah, atau akun belum terdaftar.");
+            alert.showAndWait();
         }
-        passwordField.clear();
-        passwordVisibleField.clear();
     }
 
     private void showInfo(String title, String content) {

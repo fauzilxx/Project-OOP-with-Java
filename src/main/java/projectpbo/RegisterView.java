@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -194,6 +195,7 @@ public class RegisterView {
         confirmError = errorLabel();
 
         Button registerBtn = new Button("Daftar Sekarang");
+        registerBtn.setCursor(Cursor.HAND);
         registerBtn.setPrefHeight(44);
         registerBtn.setMaxWidth(Double.MAX_VALUE);
         registerBtn.setStyle(buttonPrimary());
@@ -280,12 +282,39 @@ public class RegisterView {
 
         if (!valid) return;
 
-        Alert a = new Alert(Alert.AlertType.INFORMATION);
-        a.setTitle("Registrasi Berhasil");
-        a.setHeaderText(null);
-        a.setContentText("Akun " + username + " berhasil dibuat. Silakan login.");
-        a.showAndWait();
-        navigateLogin();
+        // Cek duplikasi sebelum insert
+        if (DBConnection.isUsernameRegistered(username)) {
+            Alert a = new Alert(Alert.AlertType.ERROR);
+            a.setTitle("Registrasi Gagal");
+            a.setHeaderText(null);
+            a.setContentText("Username sudah terdaftar, pilih username lain.");
+            a.showAndWait();
+            return;
+        }
+        if (DBConnection.isEmailRegistered(email)) {
+            Alert a = new Alert(Alert.AlertType.ERROR);
+            a.setTitle("Registrasi Gagal");
+            a.setHeaderText(null);
+            a.setContentText("Email sudah terdaftar, gunakan email lain.");
+            a.showAndWait();
+            return;
+        }
+
+        // Register user as admin automatically, simpan nomor HP
+        if (DBConnection.register(username, email, phone, pass, "admin")) {
+            Alert a = new Alert(Alert.AlertType.INFORMATION);
+            a.setTitle("Registrasi Berhasil");
+            a.setHeaderText(null);
+            a.setContentText("Akun " + username + " berhasil dibuat. Silakan login.");
+            a.showAndWait();
+            navigateLogin();
+        } else {
+            Alert a = new Alert(Alert.AlertType.ERROR);
+            a.setTitle("Registrasi Gagal");
+            a.setHeaderText(null);
+            a.setContentText("Gagal membuat akun. Coba lagi nanti.");
+            a.showAndWait();
+        }
     }
 
     // UI helpers

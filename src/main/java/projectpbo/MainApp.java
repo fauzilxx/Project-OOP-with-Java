@@ -8,6 +8,8 @@ import javafx.stage.Stage;
 public class MainApp extends Application {
 
     public static void main(String[] args) {
+        // Inisialisasi database dan tabel saat aplikasi mulai
+        DBConnection.createTables();
         launch(args);
     }
 
