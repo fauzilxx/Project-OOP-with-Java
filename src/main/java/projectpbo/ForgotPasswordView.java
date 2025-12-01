@@ -232,12 +232,15 @@ public class ForgotPasswordView {
         resetBtn.setOnAction(e -> handleReset());
         resetBtn.setVisible(false);
         resetBtn.setManaged(false);
+        resetBtn.setDefaultButton(true);
 
         Label footer = new Label("© 2025 Nasihuy Hospital All rights reserved.");
         footer.setFont(Font.font(11));
         footer.setTextFill(Color.web("#9aa5a6"));
         footer.setAlignment(Pos.CENTER);
         footer.setPadding(new Insets(12, 0, 0, 0));
+
+        
 
         form.getChildren().addAll(
             emailLabel, emailRow, emailError, sendBtn,
@@ -330,10 +333,14 @@ public class ForgotPasswordView {
     }
 
     private void setResetFieldsVisible(boolean visible) {
-        otpField.setVisible(visible); otpField.setManaged(visible);
-        newPassField.setVisible(visible); newPassField.setManaged(visible);
-        confirmPassField.setVisible(visible); confirmPassField.setManaged(visible);
-        resetError.setVisible(false); resetError.setManaged(visible);
+        otpField.setVisible(visible);
+        otpField.setManaged(visible);
+        newPassField.setVisible(visible);
+        newPassField.setManaged(visible);
+        confirmPassField.setVisible(visible);
+        confirmPassField.setManaged(visible);
+        resetError.setVisible(false);
+        resetError.setManaged(visible);
         // The reset button is the next node after resetError in the form; easier to toggle by searching parent
         // But since we created a reference during creation, we kept it anonymous. Instead, toggle via managed/visible on confirmPass but here we handle only fields.
         // We will find and show the last button in parent container
@@ -356,7 +363,9 @@ public class ForgotPasswordView {
     }
 
     private boolean isValidEmail(String email) {
-        if (email.isEmpty()) return false;
+        if (email.isEmpty()) {
+            return false;
+        }
         String regex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
         return Pattern.compile(regex).matcher(email).matches();
     }
@@ -374,7 +383,9 @@ public class ForgotPasswordView {
     }
 
     private boolean isStrongPassword(String s) {
-        if (s == null || s.length() < 8) return false;
+        if (s == null || s.length() < 8) {
+            return false;
+        }
         boolean hasLetter = s.matches(".*[A-Za-z].*");
         boolean hasDigit = s.matches(".*[0-9].*");
         return hasLetter && hasDigit;

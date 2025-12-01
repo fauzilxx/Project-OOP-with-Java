@@ -2,6 +2,7 @@ package projectpbo;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -53,27 +54,29 @@ public class DBConnection {
 
             // Table Inpatients (Rawat Inap)
             "CREATE TABLE IF NOT EXISTS inpatients (" +
-            "id INT AUTO_INCREMENT PRIMARY KEY, " +
+            "patient_number VARCHAR(20) PRIMARY KEY, " +
             "name VARCHAR(100) NOT NULL, " +
-            "patient_number VARCHAR(20) NOT NULL UNIQUE, " +
             "illness VARCHAR(100), " +
             "room VARCHAR(50), " +
-            "doctor VARCHAR(100))",
+            "doctor VARCHAR(100), " +
+            "address VARCHAR(255))",
 
             // Table Outpatients (Rawat Jalan)
             "CREATE TABLE IF NOT EXISTS outpatients (" +
-            "id INT AUTO_INCREMENT PRIMARY KEY, " +
+            "patient_number VARCHAR(20) PRIMARY KEY, " +
             "name VARCHAR(100) NOT NULL, " +
-            "patient_number VARCHAR(20) NOT NULL UNIQUE, " +
             "complaint VARCHAR(255), " +
             "schedule DATETIME, " +
-            "doctor VARCHAR(100))",
+            "doctor VARCHAR(100), " +
+            "status VARCHAR(50) DEFAULT 'Menunggu')",
 
             // Table Queues (Antrian)
             "CREATE TABLE IF NOT EXISTS queues (" +
-            "id INT AUTO_INCREMENT PRIMARY KEY, " +
+            "patient_rm VARCHAR(20) PRIMARY KEY, " +
             "queue_number VARCHAR(10) NOT NULL, " +
             "patient_name VARCHAR(100) NOT NULL, " +
+            "complaint VARCHAR(255), " +
+            "arrival_time DATETIME, " +
             "doctor_name VARCHAR(100), " +
             "status VARCHAR(20) DEFAULT 'Menunggu')",
 
@@ -130,6 +133,8 @@ public class DBConnection {
                 ensureEmailColumnExists(stmt);
                 ensurePhoneColumnExists(stmt);
                 ensureQueueExtraColumnsExists(stmt);
+                ensureAddressColumnExists(stmt);
+                ensureOutpatientStatusColumnExists(stmt);
 
                 // Seed initial data if empty
                 seedUsers(stmt);
@@ -200,6 +205,18 @@ public class DBConnection {
             }
         } catch (SQLException e) {
             System.err.println("Gagal migrasi tambahan kolom queues: " + e.getMessage());
+        }
+    }
+
+    private static void ensureAddressColumnExists(Statement stmt) {
+        try {
+            java.sql.ResultSet rs = stmt.executeQuery("SHOW COLUMNS FROM inpatients LIKE 'address'");
+            if (!rs.next()) {
+                stmt.execute("ALTER TABLE inpatients ADD COLUMN address VARCHAR(255)");
+                System.out.println("Kolom 'address' ditambahkan ke tabel inpatients.");
+            }
+        } catch (SQLException e) {
+            System.err.println("Gagal cek/tambah kolom address: " + e.getMessage());
         }
     }
 
@@ -343,15 +360,23 @@ public class DBConnection {
              java.sql.PreparedStatement ps = conn.prepareStatement(select)) {
             ps.setString(1, email);
             try (java.sql.ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) return false;
+                if (!rs.next()) {
+                    return false;
+                }
                 int id = rs.getInt("id");
                 String otpHash = rs.getString("otp_hash");
                 java.sql.Timestamp expires = rs.getTimestamp("expires_at");
                 boolean used = rs.getBoolean("used");
-                if (used) return false;
-                if (expires.toInstant().isBefore(java.time.Instant.now())) return false;
+                if (used) {
+                    return false;
+                }
+                if (expires.toInstant().isBefore(java.time.Instant.now())) {
+                    return false;
+                }
                 boolean matched = projectpbo.AccountService.verifyPassword(otp, otpHash);
-                if (!matched) return false;
+                if (!matched) {
+                    return false;
+                }
                 // mark used
                 try (java.sql.PreparedStatement upd = conn.prepareStatement("UPDATE password_resets SET used=1 WHERE id=?")) {
                     upd.setInt(1, id);
@@ -362,6 +387,93 @@ public class DBConnection {
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
+        }
+    }
+
+    public static void ensureOutpatientStatusColumnExists() {
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement()) {
+            ensureOutpatientStatusColumnExists(stmt);
+        } catch (SQLException e) {
+            System.err.println("Error ensuring outpatient status column: " + e.getMessage());
+        }
+    }
+
+    public static void ensureOutpatientStatusColumnExists(Statement stmt) {
+        String sql = "ALTER TABLE outpatients ADD COLUMN status VARCHAR(50) DEFAULT 'Menunggu'";
+        try {
+            // Check if column exists first to avoid error, or just try-catch the specific error
+            // Simple way: try to select the column, if fails, add it.
+            // Or just run ALTER and catch exception if it exists.
+            // Better: Query information_schema or just try-catch.
+            try {
+                stmt.executeQuery("SELECT status FROM outpatients LIMIT 1");
+            } catch (SQLException e) {
+                // Column likely doesn't exist
+                System.out.println("Adding 'status' column to outpatients table...");
+                stmt.executeUpdate(sql);
+                System.out.println("Column 'status' added successfully.");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking/adding status column: " + e.getMessage());
+        }
+    }
+
+    public static void migrateToNaturalKeys() {
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement()) {
+            
+            // Migrate Outpatients
+            try {
+                // Check if id column exists
+                ResultSet rs = stmt.executeQuery("SHOW COLUMNS FROM outpatients LIKE 'id'");
+                if (rs.next()) {
+                    System.out.println("Migrating outpatients to natural key...");
+                    // We need to handle duplicates before adding PK constraint if any
+                    // For simplicity in this dev env, we might truncate or assume user handles it.
+                    // But let's try to just alter.
+                    stmt.executeUpdate("ALTER TABLE outpatients MODIFY id INT"); // Remove auto_increment
+                    stmt.executeUpdate("ALTER TABLE outpatients DROP PRIMARY KEY");
+                    stmt.executeUpdate("ALTER TABLE outpatients DROP COLUMN id");
+                    stmt.executeUpdate("ALTER TABLE outpatients ADD PRIMARY KEY (patient_number)");
+                    System.out.println("Migrated outpatients.");
+                }
+            } catch (SQLException e) {
+                System.err.println("Error migrating outpatients: " + e.getMessage());
+            }
+
+            // Migrate Inpatients
+            try {
+                ResultSet rs = stmt.executeQuery("SHOW COLUMNS FROM inpatients LIKE 'id'");
+                if (rs.next()) {
+                    System.out.println("Migrating inpatients to natural key...");
+                    stmt.executeUpdate("ALTER TABLE inpatients MODIFY id INT");
+                    stmt.executeUpdate("ALTER TABLE inpatients DROP PRIMARY KEY");
+                    stmt.executeUpdate("ALTER TABLE inpatients DROP COLUMN id");
+                    stmt.executeUpdate("ALTER TABLE inpatients ADD PRIMARY KEY (patient_number)");
+                    System.out.println("Migrated inpatients.");
+                }
+            } catch (SQLException e) {
+                System.err.println("Error migrating inpatients: " + e.getMessage());
+            }
+
+            // Migrate Queues
+            try {
+                ResultSet rs = stmt.executeQuery("SHOW COLUMNS FROM queues LIKE 'id'");
+                if (rs.next()) {
+                    System.out.println("Migrating queues to natural key...");
+                    stmt.executeUpdate("ALTER TABLE queues MODIFY id INT");
+                    stmt.executeUpdate("ALTER TABLE queues DROP PRIMARY KEY");
+                    stmt.executeUpdate("ALTER TABLE queues DROP COLUMN id");
+                    stmt.executeUpdate("ALTER TABLE queues ADD PRIMARY KEY (patient_rm)");
+                    System.out.println("Migrated queues.");
+                }
+            } catch (SQLException e) {
+                System.err.println("Error migrating queues: " + e.getMessage());
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }

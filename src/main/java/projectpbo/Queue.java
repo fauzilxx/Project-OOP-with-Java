@@ -4,19 +4,16 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 public class Queue {
-    private final IntegerProperty id = new SimpleIntegerProperty();
+    // id removed, patient_rm is PK
     private final StringProperty queueNumber = new SimpleStringProperty();
     private final StringProperty patientName = new SimpleStringProperty();
     private final StringProperty patientNumber = new SimpleStringProperty();
@@ -27,8 +24,7 @@ public class Queue {
 
     private static final DateTimeFormatter DISPLAY_FMT = DateTimeFormatter.ofPattern("dd MMMM yyyy HH:mm");
 
-    public Queue(int id, String queueNumber, String patientName, String patientNumber, String complaint, String arrivalTimeFormatted, String doctorName, String status) {
-        this.id.set(id);
+    public Queue(String queueNumber, String patientName, String patientNumber, String complaint, String arrivalTimeFormatted, String doctorName, String status) {
         this.queueNumber.set(queueNumber);
         this.patientName.set(patientName);
         this.patientNumber.set(patientNumber);
@@ -38,22 +34,50 @@ public class Queue {
         this.status.set(status);
     }
 
-    public int getId() { return id.get(); }
-    public IntegerProperty idProperty() { return id; }
-    public String getQueueNumber() { return queueNumber.get(); }
-    public StringProperty queueNumberProperty() { return queueNumber; }
-    public String getPatientName() { return patientName.get(); }
-    public StringProperty patientNameProperty() { return patientName; }
-    public String getPatientNumber() { return patientNumber.get(); }
-    public StringProperty patientNumberProperty() { return patientNumber; }
-    public String getComplaint() { return complaint.get(); }
-    public StringProperty complaintProperty() { return complaint; }
-    public String getArrivalTime() { return arrivalTime.get(); }
-    public StringProperty arrivalTimeProperty() { return arrivalTime; }
-    public String getDoctorName() { return doctorName.get(); }
-    public StringProperty doctorNameProperty() { return doctorName; }
-    public String getStatus() { return status.get(); }
-    public StringProperty statusProperty() { return status; }
+    // getId removed
+
+    public String getQueueNumber() {
+        return queueNumber.get();
+    }
+    public StringProperty queueNumberProperty() {
+        return queueNumber;
+    }
+    public String getPatientName() {
+        return patientName.get();
+    }
+    public StringProperty patientNameProperty() {
+        return patientName;
+    }
+    public String getPatientNumber() {
+        return patientNumber.get();
+    }
+    public StringProperty patientNumberProperty() {
+        return patientNumber;
+    }
+    public String getComplaint() {
+        return complaint.get();
+    }
+    public StringProperty complaintProperty() {
+        return complaint;
+    }
+    public String getArrivalTime() {
+        return arrivalTime.get();
+    }
+    public StringProperty arrivalTimeProperty() {
+        return arrivalTime;
+    }
+    public String getDoctorName() {
+        return doctorName.get();
+    }
+    public StringProperty doctorNameProperty() {
+        return doctorName;
+    }
+    public String getStatus() {
+        return status.get();
+    }
+    public StringProperty statusProperty() {
+        return status;
+    }
 
     public boolean matches(String q) {
         if (q == null || q.isBlank()) return true;
@@ -63,13 +87,13 @@ public class Queue {
 
     // === CRUD Static Methods ===
     public static ObservableList<Queue> fetchAll() {
+        DBConnection.migrateToNaturalKeys(); // Ensure migration
         ObservableList<Queue> list = FXCollections.observableArrayList();
-        String sql = "SELECT id, queue_number, patient_name, patient_rm, complaint, arrival_time, doctor_name, status FROM queues ORDER BY id DESC";
+        String sql = "SELECT queue_number, patient_name, patient_rm, complaint, arrival_time, doctor_name, status FROM queues ORDER BY patient_rm ASC";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                int id = rs.getInt("id");
                 String qn = rs.getString("queue_number");
                 String pname = rs.getString("patient_name");
                 String prm = rs.getString("patient_rm");
@@ -78,7 +102,7 @@ public class Queue {
                 String atDisplay = atTs != null ? DISPLAY_FMT.format(atTs.toLocalDateTime()) : "";
                 String dname = rs.getString("doctor_name");
                 String stat = rs.getString("status");
-                list.add(new Queue(id, qn, pname, prm, comp, atDisplay, dname, stat));
+                list.add(new Queue(qn, pname, prm, comp, atDisplay, dname, stat));
             }
         } catch (SQLException e) {
             System.err.println("Gagal load queue: " + e.getMessage());
@@ -90,7 +114,7 @@ public class Queue {
         String queueNumber = generateNextQueueNumber();
         String sql = "INSERT INTO queues (queue_number, patient_rm, patient_name, complaint, arrival_time, doctor_name, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, queueNumber);
             ps.setString(2, patientNumber);
             ps.setString(3, patientName);
@@ -100,12 +124,8 @@ public class Queue {
             ps.setString(7, status);
             int rows = ps.executeUpdate();
             if (rows > 0) {
-                try (ResultSet keys = ps.getGeneratedKeys()) {
-                    if (keys.next()) {
-                        return new Queue(keys.getInt(1), queueNumber, patientName, patientNumber, complaint,
-                                arrival != null ? DISPLAY_FMT.format(arrival) : "", doctorName, status);
-                    }
-                }
+                return new Queue(queueNumber, patientName, patientNumber, complaint,
+                        arrival != null ? DISPLAY_FMT.format(arrival) : "", doctorName, status);
             }
         } catch (SQLException e) {
             System.err.println("Gagal tambah antrian: " + e.getMessage());
@@ -113,18 +133,26 @@ public class Queue {
         return null;
     }
 
+    private static LocalDateTime parseDisplayTime(String timeStr) {
+        if (timeStr == null || timeStr.isBlank()) return null;
+        try {
+            return LocalDateTime.parse(timeStr, DISPLAY_FMT);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public static boolean update(Queue q) {
-        String sql = "UPDATE queues SET patient_name=?, patient_rm=?, complaint=?, arrival_time=?, doctor_name=?, status=? WHERE id=?";
+        String sql = "UPDATE queues SET patient_name=?, complaint=?, arrival_time=?, doctor_name=?, status=? WHERE patient_rm=?";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+            PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, q.getPatientName());
-            ps.setString(2, q.getPatientNumber());
-            ps.setString(3, q.getComplaint());
+            ps.setString(2, q.getComplaint());
             LocalDateTime parsed = parseDisplayTime(q.getArrivalTime());
-            ps.setTimestamp(4, parsed != null ? java.sql.Timestamp.valueOf(parsed) : null);
-            ps.setString(5, q.getDoctorName());
-            ps.setString(6, q.getStatus());
-            ps.setInt(7, q.getId());
+            ps.setTimestamp(3, parsed != null ? java.sql.Timestamp.valueOf(parsed) : null);
+            ps.setString(4, q.getDoctorName());
+            ps.setString(5, q.getStatus());
+            ps.setString(6, q.getPatientNumber());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Gagal update antrian: " + e.getMessage());
@@ -133,10 +161,10 @@ public class Queue {
     }
 
     public static boolean delete(Queue q) {
-        String sql = "DELETE FROM queues WHERE id=?";
+        String sql = "DELETE FROM queues WHERE patient_rm=?";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, q.getId());
+            PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, q.getPatientNumber());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Gagal hapus antrian: " + e.getMessage());
@@ -147,8 +175,8 @@ public class Queue {
     public static int countWaiting() {
         String sql = "SELECT COUNT(*) FROM queues WHERE status='Menunggu'";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()) {
             if (rs.next()) return rs.getInt(1);
         } catch (SQLException e) {
             System.err.println("Gagal hitung antrian menunggu: " + e.getMessage());
@@ -160,8 +188,8 @@ public class Queue {
         ObservableList<String> names = FXCollections.observableArrayList();
         String sql = "SELECT DISTINCT patient_name, patient_rm FROM queues";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 String name = rs.getString(1);
                 String rm = rs.getString(2);
@@ -175,10 +203,10 @@ public class Queue {
 
     private static String generateNextQueueNumber() {
         String last = null;
-        String sql = "SELECT queue_number FROM queues ORDER BY id DESC LIMIT 1";
+        String sql = "SELECT queue_number FROM queues ORDER BY queue_number DESC LIMIT 1";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery()) {
             if (rs.next()) last = rs.getString(1);
         } catch (SQLException e) {
             System.err.println("Gagal ambil nomor antrian terakhir: " + e.getMessage());
@@ -190,8 +218,22 @@ public class Queue {
         return String.format("Q%04d", nextNum);
     }
 
-    private static LocalDateTime parseDisplayTime(String display) {
-        if (display == null || display.isBlank()) return null;
-        try { return LocalDateTime.parse(display, DISPLAY_FMT); } catch (Exception e) { return null; }
+    // Removed isPatientNumberExists(String number, int excludeId)
+    public static boolean isPatientNumberExists(String number) {
+        String sql = "SELECT COUNT(*) FROM queues WHERE patient_rm = ?";
+        try (Connection conn = DBConnection.getConnection()) {
+            if (conn == null) return false;
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, number);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        return rs.getInt(1) > 0;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking queue patient number: " + e.getMessage());
+        }
+        return false;
     }
 }

@@ -18,12 +18,16 @@ public class AccountService {
 
     // Password hashing (BCrypt)
     public static String hashPassword(String plain) {
-        if (plain == null) return null;
+        if (plain == null) {
+            return null;
+        }
         return BCrypt.hashpw(plain, BCrypt.gensalt(10));
     }
 
     public static boolean verifyPassword(String plain, String hashed) {
-        if (plain == null || hashed == null) return false;
+        if (plain == null || hashed == null) {
+            return false;
+        }
         try {
             return BCrypt.checkpw(plain, hashed);
         } catch (IllegalArgumentException ex) {
@@ -34,7 +38,9 @@ public class AccountService {
 
     // Detect whether a string looks like a BCrypt hash
     public static boolean isBcryptHash(String value) {
-        if (value == null) return false;
+        if (value == null) {
+            return false;
+        }
         return value.matches("^\\$2[aby]\\$\\d{2}\\$.*");
     }
 
@@ -47,22 +53,32 @@ public class AccountService {
 
     // Request password reset: generate OTP, store hashed, send email
     public static boolean requestPasswordReset(String email) {
-        if (email == null || email.isBlank()) return false;
-        if (!DBConnection.isEmailRegistered(email)) return false;
+        if (email == null || email.isBlank()) {
+            return false;
+        }
+        if (!DBConnection.isEmailRegistered(email)) {
+            return false;
+        }
 
         String otp = generateOtp();
         String otpHash = hashPassword(otp);
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(10);
         boolean saved = DBConnection.savePasswordResetOtp(email, otpHash, expiresAt);
-        if (!saved) return false;
+        if (!saved) {
+            return false;
+        }
         return sendOtpEmail(email, otp, expiresAt);
     }
 
     // Reset password with OTP
     public static boolean resetPassword(String email, String otp, String newPassword) {
-        if (email == null || otp == null || newPassword == null) return false;
+        if (email == null || otp == null || newPassword == null) {
+            return false;
+        }
         boolean ok = DBConnection.verifyAndConsumeOtp(email, otp);
-        if (!ok) return false;
+        if (!ok) {
+            return false;
+        }
         return DBConnection.updatePassword(email, newPassword);
     }
 

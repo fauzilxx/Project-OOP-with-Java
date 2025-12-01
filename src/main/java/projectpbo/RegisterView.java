@@ -48,8 +48,13 @@ public class RegisterView {
     private Label confirmError;
     private boolean confirmVisible = false;
 
-    public static Parent createRoot(Stage stage) { return new RegisterView(stage).build(); }
-    public RegisterView(Stage stage) { this.hostStage = stage; }
+    public static Parent createRoot(Stage stage) {
+        return new RegisterView(stage).build();
+    }
+
+    public RegisterView(Stage stage) {
+        this.hostStage = stage;
+    }
 
     private Parent build() {
         HBox root = new HBox();
@@ -89,7 +94,8 @@ public class RegisterView {
                 Image img = new Image(imagePath, true);
                 iv.setImage(img);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         iv.setFitWidth(420);
         iv.setFitHeight(420);
         StackPane.setAlignment(iv, Pos.CENTER);
@@ -200,6 +206,7 @@ public class RegisterView {
         registerBtn.setMaxWidth(Double.MAX_VALUE);
         registerBtn.setStyle(buttonPrimary());
         registerBtn.setOnAction(e -> handleRegister());
+        registerBtn.setDefaultButton(true);
 
         // login link
         HBox loginRow = new HBox(4);
@@ -215,6 +222,7 @@ public class RegisterView {
         footer.setTextFill(Color.web("#9aa5a6"));
         footer.setAlignment(Pos.CENTER);
         footer.setPadding(new Insets(12, 0, 0, 0));
+
 
         form.getChildren().addAll(
                 userLabel, userRow, usernameError,
@@ -250,37 +258,57 @@ public class RegisterView {
             usernameError.setVisible(true);
             setError(usernameField);
             valid = false;
-        } else { clearError(usernameField, usernameError); }
+        } else {
+            clearError(usernameField, usernameError);
+        }
 
         if (!isValidEmail(email)) {
             emailError.setText("Masukkan email yang valid");
             emailError.setVisible(true);
             setError(emailField);
             valid = false;
-        } else { clearError(emailField, emailError); }
+        } else {
+            clearError(emailField, emailError);
+        }
 
         if (!isValidPhone(phone)) {
             phoneError.setText("Nomor HP 10-15 digit");
             phoneError.setVisible(true);
             setError(phoneField);
             valid = false;
-        } else { clearError(phoneField, phoneError); }
+        } else {
+            clearError(phoneField, phoneError);
+        }
 
         if (!isStrongPassword(pass)) {
             passwordError.setText("Minimal 8 karakter, kombinasi huruf & angka");
             passwordError.setVisible(true);
-            if (passwordVisible) setError(passwordVisibleField); else setError(passwordField);
+            if (passwordVisible) {
+                setError(passwordVisibleField);
+            } else {
+                setError(passwordField);
+            }
             valid = false;
-        } else { resetFieldStyles(passwordField, passwordVisibleField, passwordError); }
+        } else {
+            resetFieldStyles(passwordField, passwordVisibleField, passwordError);
+        }
 
         if (!pass.equals(conf)) {
             confirmError.setText("Konfirmasi tidak cocok");
             confirmError.setVisible(true);
-            if (confirmVisible) setError(confirmVisibleField); else setError(confirmField);
+            if (confirmVisible) {
+                setError(confirmVisibleField);
+            } else {
+                setError(confirmField);
+            }
             valid = false;
-        } else { resetFieldStyles(confirmField, confirmVisibleField, confirmError); }
+        } else {
+            resetFieldStyles(confirmField, confirmVisibleField, confirmError);
+        }
 
-        if (!valid) return;
+        if (!valid) {
+            return;
+        }
 
         // Cek duplikasi sebelum insert
         if (DBConnection.isUsernameRegistered(username)) {
@@ -299,6 +327,7 @@ public class RegisterView {
             a.showAndWait();
             return;
         }
+
 
         // Register user as admin automatically, simpan nomor HP
         if (DBConnection.register(username, email, phone, pass, "admin")) {
@@ -344,7 +373,8 @@ public class RegisterView {
 
     private HBox passwordRow(PasswordField pf, TextField tf, boolean primary) {
         ImageView eyeView = new ImageView(new Image(getClass().getResourceAsStream("/assets/visibility.png")));
-        eyeView.setFitWidth(18); eyeView.setFitHeight(18);
+        eyeView.setFitWidth(18);
+        eyeView.setFitHeight(18);
         Button eyeBtn = new Button();
         eyeBtn.setGraphic(eyeView);
         eyeBtn.setStyle("-fx-background-color: transparent;");
@@ -358,9 +388,13 @@ public class RegisterView {
         box.setPadding(new Insets(0, 8, 0, 12));
 
         StackPane stack = new StackPane();
-        pf.setPrefHeight(50); pf.setStyle(innerFieldStyle());
-        tf.setPrefHeight(50); tf.setStyle(innerFieldStyle());
-        tf.setVisible(false); tf.setManaged(false); tf.setOpacity(0);
+        pf.setPrefHeight(50);
+        pf.setStyle(innerFieldStyle());
+        tf.setPrefHeight(50);
+        tf.setStyle(innerFieldStyle());
+        tf.setVisible(false);
+        tf.setManaged(false);
+        tf.setOpacity(0);
         stack.getChildren().addAll(pf, tf);
         stack.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(stack, Priority.ALWAYS);
@@ -370,15 +404,27 @@ public class RegisterView {
         eyeBtn.setOnAction(e -> {
             boolean show = primary ? (passwordVisible = !passwordVisible) : (confirmVisible = !confirmVisible);
             if (show) {
-                tf.setText(pf.getText()); tf.setVisible(true); tf.setManaged(true); tf.setOpacity(1);
-                pf.setVisible(false); pf.setManaged(false); pf.setOpacity(0);
+                tf.setText(pf.getText());
+                tf.setVisible(true);
+                tf.setManaged(true);
+                tf.setOpacity(1);
+                pf.setVisible(false);
+                pf.setManaged(false);
+                pf.setOpacity(0);
                 eyeView.setImage(new Image(getClass().getResourceAsStream("/assets/visibility_lock.png")));
-                tf.requestFocus(); tf.positionCaret(tf.getText().length());
+                tf.requestFocus();
+                tf.positionCaret(tf.getText().length());
             } else {
-                pf.setText(tf.getText()); pf.setVisible(true); pf.setManaged(true); pf.setOpacity(1);
-                tf.setVisible(false); tf.setManaged(false); tf.setOpacity(0);
+                pf.setText(tf.getText());
+                pf.setVisible(true);
+                pf.setManaged(true);
+                pf.setOpacity(1);
+                tf.setVisible(false);
+                tf.setManaged(false);
+                tf.setOpacity(0);
                 eyeView.setImage(new Image(getClass().getResourceAsStream("/assets/visibility.png")));
-                pf.requestFocus(); pf.positionCaret(pf.getText().length());
+                pf.requestFocus();
+                pf.positionCaret(pf.getText().length());
             }
         });
 
@@ -404,38 +450,66 @@ public class RegisterView {
 
     // Validation helpers
     private boolean isValidUsername(String u) {
-        if (u == null) return false;
-        if (u.length() < 3 || u.length() > 50) return false;
+        if (u == null) {
+            return false;
+        }
+        if (u.length() < 3 || u.length() > 50) {
+            return false;
+        }
         return u.matches("[A-Za-z0-9_.-]+");
     }
 
     private boolean isValidEmail(String email) {
-        if (email == null || email.isEmpty()) return false;
+        if (email == null || email.isEmpty()) {
+            return false;
+        }
         String regex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
         return Pattern.compile(regex).matcher(email).matches();
     }
 
     private boolean isValidPhone(String p) {
-        if (p == null) return false;
+        if (p == null) {
+            return false;
+        }
         String digits = p.replaceAll("[^0-9]", "");
         return digits.length() >= 10 && digits.length() <= 15;
     }
 
     private boolean isStrongPassword(String s) {
-        if (s == null || s.length() < 8) return false;
+        if (s == null || s.length() < 8) {
+            return false;
+        }
         boolean hasLetter = s.matches(".*[A-Za-z].*");
         boolean hasDigit = s.matches(".*[0-9].*");
         return hasLetter && hasDigit;
     }
 
-    private String text(TextField f) { return f.getText() == null ? "" : f.getText().trim(); }
-    private String getPasswordValue(PasswordField pf, TextField tf, boolean visible) { return (visible ? tf.getText() : pf.getText()); }
+    private String text(TextField f) {
+        return f.getText() == null ? "" : f.getText().trim();
+    }
 
-    private void setError(TextField f) { f.setStyle(fieldErrorStyle()); }
-    private void clearError(TextField f, Label l) { f.setStyle(fieldDefaultStyle()); l.setVisible(false); }
-    private void resetFieldStyles(PasswordField pf, TextField tf, Label l) { pf.setStyle(fieldDefaultStyle()); tf.setStyle(fieldDefaultStyle()); l.setVisible(false); }
+    private String getPasswordValue(PasswordField pf, TextField tf, boolean visible) {
+        return (visible ? tf.getText() : pf.getText());
+    }
 
-    private String fieldDefaultStyle() { return innerFieldStyle(); }
+    private void setError(TextField f) {
+        f.setStyle(fieldErrorStyle());
+    }
+
+    private void clearError(TextField f, Label l) {
+        f.setStyle(fieldDefaultStyle());
+        l.setVisible(false);
+    }
+
+    private void resetFieldStyles(PasswordField pf, TextField tf, Label l) {
+        pf.setStyle(fieldDefaultStyle());
+        tf.setStyle(fieldDefaultStyle());
+        l.setVisible(false);
+    }
+
+    private String fieldDefaultStyle() {
+        return innerFieldStyle();
+    }
     private String fieldErrorStyle() {
         // show error on container by using a stronger border when used directly; inner fields stay transparent
         return "-fx-background-color: #fff6f6; -fx-border-color: #e06b6b; -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 0 10 0 10; -fx-font-size: 14;";

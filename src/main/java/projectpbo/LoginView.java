@@ -49,104 +49,108 @@ public class LoginView {
         return view.build();
     }
 
-    public LoginView() { this(null); }
-    public LoginView(Stage stage) { this.hostStage = stage; }
-
-    private Parent build() {
-    HBox root = new HBox();
-    root.setPrefSize(1200, 650);
-    root.setMinWidth(900);
-    root.setMinHeight(500);
-
-    StackPane leftPane = createLeftPane();
-    VBox rightPane = createRightPane();
-
-
-    // Panel kiri: lebar tetap, panel kanan: grow
-    leftPane.setMinWidth(520);
-    leftPane.setMaxWidth(600);
-    leftPane.setPrefWidth(560);
-    HBox.setHgrow(leftPane, Priority.NEVER);
-    HBox.setHgrow(rightPane, Priority.ALWAYS);
-
-    root.getChildren().addAll(leftPane, rightPane);
-    return root;
-}
-
-    private StackPane createLeftPane() {
-    StackPane stack = new StackPane();
-    stack.setStyle("-fx-background-color: linear-gradient(to bottom right, #075985, #06b6d4);");
-    stack.setPadding(new Insets(36));
-
-    // Card with rounded corners and shadow that will hold the image
-    StackPane card = new StackPane();
-    card.setPrefWidth(560);    // <--- beri pref agar tidak tergantung pada children
-    card.setPrefHeight(520);
-    card.setStyle("-fx-background-color: white; -fx-background-radius: 16; -fx-padding: 28;");
-    card.setEffect(new DropShadow(24, Color.rgb(0, 0, 0, 0.18)));
-
-    ImageView iv = new ImageView();
-    iv.setFitWidth(420);
-    iv.setPreserveRatio(true);
-    try {
-        if (LoginView.class.getResource("/assets/hospital-logo.jpg") != null) {
-            String imagePath = LoginView.class.getResource("/assets/hospital-logo.jpg").toExternalForm();
-            Image img = new Image(imagePath, true);
-            iv.setImage(img);
-        } else {
-            System.out.println("Resource not found: /assets/hospital-logo.jpg");
-        }
-    } catch (Exception e) {
-        System.err.println("Image load failed: " + e.getMessage());
+    public LoginView() {
+        this(null);
     }
 
-    iv.setPreserveRatio(true);
-    iv.setSmooth(true);
+    public LoginView(Stage stage) {
+        this.hostStage = stage;
+    }
 
-    // Gambar selalu stabil, tidak mengikuti resize parent
-    iv.setFitWidth(420);
-    iv.setFitHeight(420);
-    StackPane.setAlignment(iv, Pos.CENTER);
+    private Parent build() {
+        HBox root = new HBox();
+        root.setPrefSize(1200, 650);
+        root.setMinWidth(900);
+        root.setMinHeight(500);
 
-    card.getChildren().add(iv);
+        StackPane leftPane = createLeftPane();
+        VBox rightPane = createRightPane();
 
-    // Caption below the card
-    VBox captionBox = new VBox(10);
-    captionBox.setAlignment(Pos.CENTER);
-    captionBox.setPadding(new Insets(18, 0, 6, 0));
+        // Panel kiri: lebar tetap, panel kanan: grow
+        leftPane.setMinWidth(520);
+        leftPane.setMaxWidth(600);
+        leftPane.setPrefWidth(560);
+        HBox.setHgrow(leftPane, Priority.NEVER);
+        HBox.setHgrow(rightPane, Priority.ALWAYS);
 
-    Label title = new Label("Nasihuy Hospital");
-    title.setTextFill(Color.WHITE);
-    title.setFont(Font.font("System", FontWeight.BOLD, 20));
-    title.setWrapText(true);
+        root.getChildren().addAll(leftPane, rightPane);
+        return root;
+    }
 
-    Label subtitle = new Label("Selalu hadir untuk mendukung kebutuhan kesehatan Anda");
-    subtitle.setTextFill(Color.web("#e6f7fb", 0.95));
-    subtitle.setFont(Font.font(13));
+    private StackPane createLeftPane() {
+        StackPane stack = new StackPane();
+        stack.setStyle("-fx-background-color: linear-gradient(to bottom right, #075985, #06b6d4);");
+        stack.setPadding(new Insets(36));
 
-    captionBox.getChildren().addAll(title, subtitle);
+        // Card with rounded corners and shadow that will hold the image
+        StackPane card = new StackPane();
+        card.setPrefWidth(560);    // <--- beri pref agar tidak tergantung pada children
+        card.setPrefHeight(520);
+        card.setStyle("-fx-background-color: white; -fx-background-radius: 16; -fx-padding: 28;");
+        card.setEffect(new DropShadow(24, Color.rgb(0, 0, 0, 0.18)));
 
-    // Decorative circles
-    Region circle1 = new Region();
-    circle1.setStyle("-fx-background-color: rgba(255,255,255,0.12); -fx-background-radius: 999;");
-    circle1.prefWidthProperty().bind(stack.widthProperty().multiply(0.10));
-    circle1.prefHeightProperty().bind(circle1.prefWidthProperty());
-    StackPane.setAlignment(circle1, Pos.TOP_RIGHT);
-    StackPane.setMargin(circle1, new Insets(40, 40, 0, 0));
+        ImageView iv = new ImageView();
+        iv.setFitWidth(420);
+        iv.setPreserveRatio(true);
+        try {
+            if (LoginView.class.getResource("/assets/hospital-logo.jpg") != null) {
+                String imagePath = LoginView.class.getResource("/assets/hospital-logo.jpg").toExternalForm();
+                Image img = new Image(imagePath, true);
+                iv.setImage(img);
+            } else {
+                System.out.println("Resource not found: /assets/hospital-logo.jpg");
+            }
+        } catch (Exception e) {
+            System.err.println("Image load failed: " + e.getMessage());
+        }
 
-    Region circle2 = new Region();
-    circle2.setStyle("-fx-background-color: rgba(255,255,255,0.08); -fx-background-radius: 999;");
-    circle2.prefWidthProperty().bind(stack.widthProperty().multiply(0.16));
-    circle2.prefHeightProperty().bind(circle2.prefWidthProperty());
-    StackPane.setAlignment(circle2, Pos.BOTTOM_LEFT);
-    StackPane.setMargin(circle2, new Insets(0, 0, 30, 30));
+        iv.setPreserveRatio(true);
+        iv.setSmooth(true);
 
-    VBox leftBox = new VBox(12, card, captionBox);
-    leftBox.setAlignment(Pos.CENTER);
+        // Gambar selalu stabil, tidak mengikuti resize parent
+        iv.setFitWidth(420);
+        iv.setFitHeight(420);
+        StackPane.setAlignment(iv, Pos.CENTER);
 
-    stack.getChildren().addAll(leftBox, circle1, circle2);
-    return stack;
-}
+        card.getChildren().add(iv);
+
+        // Caption below the card
+        VBox captionBox = new VBox(10);
+        captionBox.setAlignment(Pos.CENTER);
+        captionBox.setPadding(new Insets(18, 0, 6, 0));
+
+        Label title = new Label("Nasihuy Hospital");
+        title.setTextFill(Color.WHITE);
+        title.setFont(Font.font("System", FontWeight.BOLD, 20));
+        title.setWrapText(true);
+
+        Label subtitle = new Label("Selalu hadir untuk mendukung kebutuhan kesehatan Anda");
+        subtitle.setTextFill(Color.web("#e6f7fb", 0.95));
+        subtitle.setFont(Font.font(13));
+
+        captionBox.getChildren().addAll(title, subtitle);
+
+        // Decorative circles
+        Region circle1 = new Region();
+        circle1.setStyle("-fx-background-color: rgba(255,255,255,0.12); -fx-background-radius: 999;");
+        circle1.prefWidthProperty().bind(stack.widthProperty().multiply(0.10));
+        circle1.prefHeightProperty().bind(circle1.prefWidthProperty());
+        StackPane.setAlignment(circle1, Pos.TOP_RIGHT);
+        StackPane.setMargin(circle1, new Insets(40, 40, 0, 0));
+
+        Region circle2 = new Region();
+        circle2.setStyle("-fx-background-color: rgba(255,255,255,0.08); -fx-background-radius: 999;");
+        circle2.prefWidthProperty().bind(stack.widthProperty().multiply(0.16));
+        circle2.prefHeightProperty().bind(circle2.prefWidthProperty());
+        StackPane.setAlignment(circle2, Pos.BOTTOM_LEFT);
+        StackPane.setMargin(circle2, new Insets(0, 0, 30, 30));
+
+        VBox leftBox = new VBox(12, card, captionBox);
+        leftBox.setAlignment(Pos.CENTER);
+
+        stack.getChildren().addAll(leftBox, circle1, circle2);
+        return stack;
+    }
 
 
     private VBox createRightPane() {
@@ -279,6 +283,8 @@ public class LoginView {
         loginBtn.setStyle(buttonMedicalStyle());
         loginBtn.setOnAction(e -> handleLogin());
         loginBtn.setCursor(Cursor.HAND);
+        loginBtn.setDefaultButton(true);
+
 
         HBox registerBox = new HBox();
         registerBox.setAlignment(Pos.CENTER);

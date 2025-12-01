@@ -8,9 +8,14 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.Parent;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -29,10 +34,15 @@ public class InpatientView {
 
     private final Stage stage;
     private final ObservableList<Inpatient> masterData = FXCollections.observableArrayList();
+    private ContextMenu doctorSuggestions = new ContextMenu();
 
-    public InpatientView(Stage stage) { this.stage = stage; }
+    public InpatientView(Stage stage) {
+        this.stage = stage;
+    }
 
-    public static Parent createRoot(Stage stage) { return new InpatientView(stage).build(); }
+    public static Parent createRoot(Stage stage) {
+        return new InpatientView(stage).build();
+    }
 
     private Parent build() {
         BorderPane root = new BorderPane();
@@ -44,7 +54,7 @@ public class InpatientView {
 
     private HBox buildHeader() {
         HBox header = new HBox(16);
-        header.setPadding(new Insets(14,32,14,32));
+        header.setPadding(new Insets(14, 32, 14, 32));
         header.setAlignment(Pos.CENTER_LEFT);
         header.setStyle("-fx-background-color: white; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06),12,0,0,4);");
         Label title = new Label("PASIEN RAWAT INAP");
@@ -84,17 +94,19 @@ public class InpatientView {
         table.setOnMouseEntered(e -> table.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #94a3b8; -fx-border-radius:12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18),18,0,0,4);"));
         table.setOnMouseExited(e -> table.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-border-color: #e2e8f0; -fx-border-radius:12;"));
 
-        TableColumn<Inpatient,String> nameCol = new TableColumn<>("Nama");
+        TableColumn<Inpatient, String> nameCol = new TableColumn<>("Nama");
         nameCol.setCellValueFactory(c -> c.getValue().nameProperty());
-        TableColumn<Inpatient,String> numberCol = new TableColumn<>("Nomor Pasien");
+        TableColumn<Inpatient, String> numberCol = new TableColumn<>("Nomor Pasien");
         numberCol.setCellValueFactory(c -> c.getValue().patientNumberProperty());
-        TableColumn<Inpatient,String> illnessCol = new TableColumn<>("Penyakit");
+        TableColumn<Inpatient, String> illnessCol = new TableColumn<>("Penyakit");
         illnessCol.setCellValueFactory(c -> c.getValue().illnessProperty());
-        TableColumn<Inpatient,String> roomCol = new TableColumn<>("Ruangan");
+        TableColumn<Inpatient, String> roomCol = new TableColumn<>("Ruangan");
         roomCol.setCellValueFactory(c -> c.getValue().roomProperty());
-        TableColumn<Inpatient,String> doctorCol = new TableColumn<>("Dokter Penanggung");
+        TableColumn<Inpatient, String> doctorCol = new TableColumn<>("Dokter Penanggung");
         doctorCol.setCellValueFactory(c -> c.getValue().doctorProperty());
-        table.getColumns().addAll(nameCol, numberCol, illnessCol, roomCol, doctorCol);
+        TableColumn<Inpatient, String> addrCol = new TableColumn<>("Alamat");
+        addrCol.setCellValueFactory(c -> c.getValue().addressProperty());
+        table.getColumns().addAll(nameCol, numberCol, illnessCol, roomCol, doctorCol, addrCol);
 
         // Load data from database (now via Inpatient static methods)
         masterData.setAll(Inpatient.fetchAll());
@@ -113,11 +125,46 @@ public class InpatientView {
         TextField fName = makeSmallField("Nama");
         TextField fNumber = makeSmallField("Nomor");
         TextField fIllness = makeSmallField("Penyakit");
-        TextField fRoom = makeSmallField("Ruangan");
         TextField fDoctor = makeSmallField("Dokter");
-        Button addBtn = new Button("Tambah"); addBtn.setStyle(primaryButton());
-        Button editBtn = new Button("Edit"); editBtn.setStyle(primaryButton());
-        Button saveBtn = new Button("Simpan"); saveBtn.setStyle(primaryButton()); saveBtn.setDisable(true);
+
+        // Autocomplete logic
+        fDoctor.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal == null || newVal.trim().isEmpty()) {
+                doctorSuggestions.hide();
+                return;
+            }
+            
+            String lower = newVal.toLowerCase();
+            java.util.List<Doctor> matches = Doctor.fetchAll().stream()
+                .filter(d -> d.getName().toLowerCase().contains(lower))
+                .collect(java.util.stream.Collectors.toList());
+                
+            if (matches.isEmpty()) {
+                doctorSuggestions.hide();
+            } else {
+                doctorSuggestions.getItems().clear();
+                for (Doctor d : matches) {
+                    MenuItem item = new MenuItem(d.toString());
+                    item.setOnAction(e -> {
+                        fDoctor.setText(d.getName());
+                        doctorSuggestions.hide();
+                    });
+                    doctorSuggestions.getItems().add(item);
+                }
+                if (!doctorSuggestions.isShowing()) {
+                    doctorSuggestions.show(fDoctor, Side.BOTTOM, 0, 0);
+                }
+            }
+        });
+
+        TextField fAddress = makeSmallField("Alamat");
+        Button addBtn = new Button("Tambah");
+        addBtn.setStyle(primaryButton());
+        Button editBtn = new Button("Edit");
+        editBtn.setStyle(primaryButton());
+        Button saveBtn = new Button("Simpan");
+        saveBtn.setStyle(primaryButton());
+        saveBtn.setDisable(true);
 
         addBtn.setOnMouseEntered(e -> addBtn.setStyle("-fx-background-color:linear-gradient(to right,#38bdf8,#0ea5e9); -fx-text-fill:white; -fx-font-weight:600; -fx-background-radius:8; -fx-cursor: hand;"));
         addBtn.setOnMouseExited(e -> addBtn.setStyle(primaryButton()));
@@ -126,33 +173,40 @@ public class InpatientView {
         saveBtn.setOnMouseEntered(e -> saveBtn.setStyle("-fx-background-color:linear-gradient(to right,#38bdf8,#0ea5e9); -fx-text-fill:white; -fx-font-weight:600; -fx-background-radius:8; -fx-cursor: hand;"));
         saveBtn.setOnMouseExited(e -> saveBtn.setStyle(primaryButton()));
 
-        addBtn.setOnAction(e -> addPatient(fName, fNumber, fIllness, fRoom, fDoctor));
+        addBtn.setOnAction(e -> addPatient(fName, fNumber, fIllness, fDoctor, fAddress));
         editBtn.setOnAction(e -> {
             Inpatient sel = table.getSelectionModel().getSelectedItem();
-            if(sel!=null){
+            if (sel != null) {
                 fName.setText(sel.getName());
                 fNumber.setText(sel.getPatientNumber());
+                fNumber.setDisable(true); // Disable editing of PK
                 fIllness.setText(sel.getIllness());
-                fRoom.setText(sel.getRoom());
                 fDoctor.setText(sel.getDoctor());
+                fAddress.setText(sel.getAddress());
                 saveBtn.setDisable(false);
             }
         });
         saveBtn.setOnAction(e -> {
             Inpatient sel = table.getSelectionModel().getSelectedItem();
-            if(sel!=null){
+            if (sel != null) {
+                // PK cannot be changed
                 sel.nameProperty().set(fName.getText());
-                sel.patientNumberProperty().set(fNumber.getText());
+                // sel.patientNumberProperty().set(fNumber.getText());
                 sel.illnessProperty().set(fIllness.getText());
-                sel.roomProperty().set(fRoom.getText());
                 sel.doctorProperty().set(fDoctor.getText());
+                sel.addressProperty().set(fAddress.getText());
                 Inpatient.update(sel);
                 table.refresh();
-                fName.clear(); fNumber.clear(); fIllness.clear(); fRoom.clear(); fDoctor.clear();
+                fName.clear();
+                fNumber.clear();
+                fNumber.setDisable(false);
+                fIllness.clear();
+                fDoctor.clear();
+                fAddress.clear();
                 saveBtn.setDisable(true);
             }
         });
-        form.getChildren().addAll(fName,fNumber,fIllness,fRoom,fDoctor,addBtn,editBtn,saveBtn);
+        form.getChildren().addAll(fName, fNumber, fIllness, fDoctor, fAddress, addBtn, editBtn, saveBtn);
 
         // Delete button
         Button delBtn = new Button("Hapus Terpilih");
@@ -161,14 +215,20 @@ public class InpatientView {
         delBtn.setOnMouseExited(e -> delBtn.setStyle(dangerButton()));
         delBtn.setOnAction(e -> {
             Inpatient sel = table.getSelectionModel().getSelectedItem();
-            if (sel != null && Inpatient.delete(sel)) masterData.remove(sel);
+            if (sel != null && Inpatient.delete(sel)) {
+                masterData.remove(sel);
+            }
         });
 
         // Allow Enter key to trigger show (focus table)
-        searchField.setOnKeyPressed(k -> { if (k.getCode()== KeyCode.ENTER) table.requestFocus(); });
+        searchField.setOnKeyPressed(k -> {
+            if (k.getCode() == KeyCode.ENTER) {
+                table.requestFocus();
+            }
+        });
 
         // Hover styling for form fields
-        Stream.of(fName, fNumber, fIllness, fRoom, fDoctor).forEach(tf -> {
+        Stream.of(fName, fNumber, fIllness, fDoctor, fAddress).forEach(tf -> {
             tf.setOnMouseEntered(e -> tf.setStyle("-fx-background-radius:8; -fx-border-radius:8; -fx-background-color:#e2e8f0; -fx-border-color:#cbd5e1;"));
             tf.setOnMouseExited(e -> tf.setStyle(fieldStyle()));
         });
@@ -177,11 +237,32 @@ public class InpatientView {
         return box;
     }
 
-    private void addPatient(TextField fName, TextField fNumber, TextField fIllness, TextField fRoom, TextField fDoctor) {
-        if (fName.getText().isBlank() || fNumber.getText().isBlank()) return;
-        Inpatient added = Inpatient.add(fName.getText(), fNumber.getText(), fIllness.getText(), fRoom.getText(), fDoctor.getText());
-        if (added != null) masterData.add(0, added);
-        fName.clear(); fNumber.clear(); fIllness.clear(); fRoom.clear(); fDoctor.clear();
+    private void addPatient(TextField fName, TextField fNumber, TextField fIllness, TextField fDoctor, TextField fAddress) {
+        if (fName.getText().isBlank() || fNumber.getText().isBlank()) {
+            return;
+        }
+        // Check for duplicate patient number
+        if (Inpatient.isPatientNumberExists(fNumber.getText().trim())) {
+            new Alert(Alert.AlertType.ERROR, "Nomor Pasien sudah terdaftar!", ButtonType.OK).showAndWait();
+            return;
+        }
+
+        // Validate Doctor
+        String doctorName = fDoctor.getText().trim();
+        if (!doctorName.isEmpty() && !Doctor.exists(doctorName)) {
+            new Alert(Alert.AlertType.ERROR, "Dokter tidak ada dalam daftar!", ButtonType.OK).showAndWait();
+            return;
+        }
+
+        Inpatient added = Inpatient.add(fName.getText(), fNumber.getText(), fIllness.getText(), "", fDoctor.getText(), fAddress.getText());
+        if (added != null) {
+            masterData.add(0, added);
+        }
+        fName.clear();
+        fNumber.clear();
+        fIllness.clear();
+        fDoctor.clear();
+        fAddress.clear();
     }
 
     private TextField makeSmallField(String prompt) {
