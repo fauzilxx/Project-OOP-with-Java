@@ -22,10 +22,12 @@ projectpbo\RoomBooking.class
 projectpbo\DrugOrder$Drug.class
 projectpbo\DrugOrder.class
 projectpbo\QueueView.class
+projectpbo\QuickPatientRegistrationView.class
 projectpbo\AdminDashboard.class
 projectpbo\RevenueView.class
 projectpbo\DrugOrderView$CartItem.class
 projectpbo\Queue.class
 projectpbo\DrugOrderView$2.class
+projectpbo\AccountService$2.class
 projectpbo\MainApp.class
 projectpbo\OutpatientView.class

@@ -299,6 +299,27 @@ public class LoginView {
         });
         registerBox.getChildren().addAll(noAccount, register);
 
+        // Quick Patient Registration Button
+        Button quickRegisterBtn = new Button("Atau Daftar Sebagai Pasien Periksa");
+        quickRegisterBtn.setPrefHeight(40);
+        quickRegisterBtn.setMaxWidth(Double.MAX_VALUE);
+        quickRegisterBtn.setStyle("-fx-background-color: #f0f9ff; " +
+                "-fx-text-fill: #0369a1; " +
+                "-fx-font-size: 13; " +
+                "-fx-font-weight: bold; " +
+                "-fx-border-color: #bfdbfe; " +
+                "-fx-border-radius: 8; " +
+                "-fx-border-width: 1.5; " +
+                "-fx-cursor: hand;");
+        quickRegisterBtn.setOnAction(e -> {
+            if (hostStage != null && hostStage.getScene() != null) {
+                hostStage.getScene().setRoot(QuickPatientRegistrationView.createRoot(hostStage));
+            } else {
+                showInfo("Quick Register", "Navigasi tidak tersedia tanpa Stage.");
+            }
+        });
+        quickRegisterBtn.setCursor(Cursor.HAND);
+
         Label footer = new Label("© 2025 Nasihuy Hospital All rights reserved.");
         footer.setFont(Font.font(11));
         footer.setTextFill(Color.web("#9aa5a6"));
@@ -314,7 +335,9 @@ public class LoginView {
                 passwordError,
                 leftRight,
                 loginBtn,
-                registerBox
+                registerBox,
+                new Region(), // spacer
+                quickRegisterBtn
         );
 
         container.getChildren().addAll(header, form, footer);

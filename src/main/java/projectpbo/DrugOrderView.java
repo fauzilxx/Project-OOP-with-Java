@@ -415,7 +415,7 @@ public class DrugOrderView {
         // Check Outpatients
         String sqlOut = "SELECT name, doctor, 'Rawat Jalan' as loc FROM outpatients WHERE patient_number = ?";
         // Check Queues
-        String sqlQ = "SELECT patient_name, doctor_name, 'Antrian' as loc FROM queues WHERE patient_rm = ?";
+        String sqlQ = "SELECT patient_name, doctor_name, 'Antrian' as loc FROM queues WHERE patient_number = ?";
         
         try (Connection conn = DBConnection.getConnection()) {
             // Try Inpatients

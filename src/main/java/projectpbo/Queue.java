@@ -13,7 +13,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 public class Queue {
-    // id removed, patient_rm is PK
+    // id removed, patient_number is PK
     private final StringProperty queueNumber = new SimpleStringProperty();
     private final StringProperty patientName = new SimpleStringProperty();
     private final StringProperty patientNumber = new SimpleStringProperty();
@@ -21,6 +21,7 @@ public class Queue {
     private final StringProperty arrivalTime = new SimpleStringProperty(); // formatted "dd MMMM yyyy HH:mm"
     private final StringProperty doctorName = new SimpleStringProperty();
     private final StringProperty status = new SimpleStringProperty();
+    private final StringProperty waitingTime = new SimpleStringProperty();
 
     private static final DateTimeFormatter DISPLAY_FMT = DateTimeFormatter.ofPattern("dd MMMM yyyy HH:mm");
 
@@ -32,6 +33,7 @@ public class Queue {
         this.arrivalTime.set(arrivalTimeFormatted);
         this.doctorName.set(doctorName);
         this.status.set(status);
+        this.waitingTime.set("-");
     }
 
     // getId removed
@@ -78,6 +80,12 @@ public class Queue {
     public StringProperty statusProperty() {
         return status;
     }
+    public String getWaitingTime() {
+        return waitingTime.get();
+    }
+    public StringProperty waitingTimeProperty() {
+        return waitingTime;
+    }
 
     public boolean matches(String q) {
         if (q == null || q.isBlank()) return true;
@@ -89,30 +97,67 @@ public class Queue {
     public static ObservableList<Queue> fetchAll() {
         DBConnection.migrateToNaturalKeys(); // Ensure migration
         ObservableList<Queue> list = FXCollections.observableArrayList();
-        String sql = "SELECT queue_number, patient_name, patient_rm, complaint, arrival_time, doctor_name, status FROM queues ORDER BY patient_rm ASC";
+        String sql = "SELECT queue_number, patient_name, patient_number, " +
+                     "COALESCE(symptoms, complaint) as complaint, " +
+                     "COALESCE(registration_time, arrival_time) as arrival_time, " +
+                     "doctor_name, status FROM queues ORDER BY arrival_time ASC";
         try (Connection conn = DBConnection.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery()) {
+            
+            // Map to track active patients count per day to calculate wait time
+            java.util.Map<java.time.LocalDate, Integer> dailyQueueCount = new java.util.HashMap<>();
+
             while (rs.next()) {
                 String qn = rs.getString("queue_number");
                 String pname = rs.getString("patient_name");
-                String prm = rs.getString("patient_rm");
+                String prm = rs.getString("patient_number");
                 String comp = rs.getString("complaint");
-                java.sql.Timestamp atTs = rs.getTimestamp("arrival_time");
-                String atDisplay = atTs != null ? DISPLAY_FMT.format(atTs.toLocalDateTime()) : "";
-                String dname = rs.getString("doctor_name");
+                java.sql.Timestamp ts = rs.getTimestamp("arrival_time");
+                String timeStr = "";
+                String waitStr = "-";
+                
                 String stat = rs.getString("status");
-                list.add(new Queue(qn, pname, prm, comp, atDisplay, dname, stat));
+                String doc = rs.getString("doctor_name");
+
+                if (ts != null) {
+                    LocalDateTime arrival = ts.toLocalDateTime();
+                    timeStr = arrival.format(DISPLAY_FMT);
+                    java.time.LocalDate date = arrival.toLocalDate();
+                    
+                    // Initialize count for this day if not exists
+                    dailyQueueCount.putIfAbsent(date, 0);
+                    int currentCount = dailyQueueCount.get(date);
+
+                    if ("Menunggu".equalsIgnoreCase(stat)) {
+                        // Calculate wait time: count * 5 minutes
+                        int waitMinutes = currentCount * 5;
+                        waitStr = waitMinutes + " menit";
+                        // Increment count for next person
+                        dailyQueueCount.put(date, currentCount + 1);
+                    } else if ("Sedang Diperiksa".equalsIgnoreCase(stat)) {
+                        waitStr = "Sedang Diperiksa";
+                        // This person occupies the doctor, so adds to wait time for others
+                        dailyQueueCount.put(date, currentCount + 1);
+                    }
+                    // "Selesai" does not contribute to wait time
+                }
+
+                Queue q = new Queue(qn, pname, prm, comp, timeStr, doc, stat);
+                q.waitingTime.set(waitStr);
+                list.add(q);
             }
         } catch (SQLException e) {
-            System.err.println("Gagal load queue: " + e.getMessage());
+            e.printStackTrace();
         }
         return list;
     }
 
+
+
     public static Queue add(String patientName, String patientNumber, String complaint, LocalDateTime arrival, String doctorName, String status) {
         String queueNumber = generateNextQueueNumber();
-        String sql = "INSERT INTO queues (queue_number, patient_rm, patient_name, complaint, arrival_time, doctor_name, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO queues (queue_number, patient_number, patient_name, complaint, arrival_time, doctor_name, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, queueNumber);
@@ -143,7 +188,7 @@ public class Queue {
     }
 
     public static boolean update(Queue q) {
-        String sql = "UPDATE queues SET patient_name=?, complaint=?, arrival_time=?, doctor_name=?, status=? WHERE patient_rm=?";
+        String sql = "UPDATE queues SET patient_name=?, complaint=?, arrival_time=?, doctor_name=?, status=? WHERE patient_number=?";
         try (Connection conn = DBConnection.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, q.getPatientName());
@@ -161,7 +206,7 @@ public class Queue {
     }
 
     public static boolean delete(Queue q) {
-        String sql = "DELETE FROM queues WHERE patient_rm=?";
+        String sql = "DELETE FROM queues WHERE patient_number=?";
         try (Connection conn = DBConnection.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, q.getPatientNumber());
@@ -186,7 +231,7 @@ public class Queue {
 
     public static ObservableList<String> listPatientNames() {
         ObservableList<String> names = FXCollections.observableArrayList();
-        String sql = "SELECT DISTINCT patient_name, patient_rm FROM queues";
+        String sql = "SELECT DISTINCT patient_name, patient_number FROM queues";
         try (Connection conn = DBConnection.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql);
             ResultSet rs = ps.executeQuery()) {
@@ -220,7 +265,7 @@ public class Queue {
 
     // Removed isPatientNumberExists(String number, int excludeId)
     public static boolean isPatientNumberExists(String number) {
-        String sql = "SELECT COUNT(*) FROM queues WHERE patient_rm = ?";
+        String sql = "SELECT COUNT(*) FROM queues WHERE patient_number = ?";
         try (Connection conn = DBConnection.getConnection()) {
             if (conn == null) return false;
             try (PreparedStatement ps = conn.prepareStatement(sql)) {

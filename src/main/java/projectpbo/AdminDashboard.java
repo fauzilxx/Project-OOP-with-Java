@@ -50,9 +50,25 @@ public class AdminDashboard {
         header.setAlignment(Pos.CENTER_LEFT);
         header.setStyle("-fx-background-color: white; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06),12,0,0,4);");
 
+        HBox branding = new HBox(12);
+        branding.setAlignment(Pos.CENTER_LEFT);
+
+        ImageView logo = new ImageView();
+        try {
+            // Menggunakan hospital-logo.jpg karena hospitallogo.png tidak ditemukan di assets
+            String logoPath = getClass().getResource("/assets/hospital-logo.jpg").toExternalForm();
+            logo.setImage(new Image(logoPath));
+            logo.setFitHeight(40);
+            logo.setPreserveRatio(true);
+        } catch (Exception e) {
+            System.err.println("Logo header tidak ditemukan: " + e.getMessage());
+        }
+
         Label title = new Label("NASIHUY HOSPITAL");
         title.setFont(Font.font("System", FontWeight.BOLD, 18));
         title.setTextFill(Color.web("#052b4c"));
+
+        branding.getChildren().addAll(logo, title);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -83,7 +99,7 @@ public class AdminDashboard {
             }
         });
 
-        header.getChildren().addAll(title, spacer, logoutBtn);
+        header.getChildren().addAll(branding, spacer, logoutBtn);
         return header;
     }
 

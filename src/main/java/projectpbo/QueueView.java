@@ -14,6 +14,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -60,9 +61,8 @@ public class QueueView {
         backBtn.setStyle(primaryTextButton());
         backBtn.setCursor(Cursor.HAND);
         backBtn.setOnAction(e -> stage.getScene().setRoot(new AdminDashboard(stage).build()));
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        header.getChildren().addAll(backBtn, spacer, title);
+        
+        header.getChildren().addAll(backBtn, title);
         return header;
     }
 
@@ -91,12 +91,15 @@ public class QueueView {
         complaintCol.setCellValueFactory(c -> c.getValue().complaintProperty());
         TableColumn<Queue, String> timeCol = new TableColumn<>("Waktu Masuk");
         timeCol.setCellValueFactory(c -> c.getValue().arrivalTimeProperty());
+        TableColumn<Queue, String> waitCol = new TableColumn<>("Waktu Tunggu");
+        waitCol.setCellValueFactory(c -> c.getValue().waitingTimeProperty());
         TableColumn<Queue, String> statusCol = new TableColumn<>("Status");
         statusCol.setCellValueFactory(c -> c.getValue().statusProperty());
         table.getColumns().add(nameCol);
         table.getColumns().add(numberCol);
         table.getColumns().add(complaintCol);
         table.getColumns().add(timeCol);
+        table.getColumns().add(waitCol);
         table.getColumns().add(statusCol);
 
         masterData.setAll(Queue.fetchAll());
@@ -133,7 +136,10 @@ public class QueueView {
         doneBtn.setOnMouseEntered(e -> doneBtn.setStyle(hoverDangerButton()));
         doneBtn.setOnMouseExited(e -> doneBtn.setStyle(dangerButton()));
 
-        addBtn.setOnAction(e -> addQueueEntry(fName, fNumber, fComplaint, fTime, fStatus));
+        addBtn.setOnAction(e -> {
+            addQueueEntry(fName, fNumber, fComplaint, fTime, fStatus);
+            refreshData();
+        });
         editBtn.setOnAction(e -> {
             Queue sel = table.getSelectionModel().getSelectedItem();
             if (sel != null) {
@@ -163,7 +169,7 @@ public class QueueView {
                 sel.arrivalTimeProperty().set(today + " " + timeRaw);
                 sel.statusProperty().set(fStatus.getValue());
                 Queue.update(sel);
-                table.refresh();
+                refreshData();
                 saveBtn.setDisable(true);
                 fName.clear();
                 fNumber.clear();
@@ -178,7 +184,7 @@ public class QueueView {
             if (sel != null) {
                 sel.statusProperty().set("Selesai");
                 Queue.update(sel);
-                table.refresh();
+                refreshData();
             }
         });
         form.getChildren().addAll(fName, fNumber, fComplaint, fTime, fStatus, addBtn, editBtn, saveBtn, doneBtn);
@@ -189,15 +195,25 @@ public class QueueView {
         delBtn.setOnMouseExited(e -> delBtn.setStyle(dangerButton()));
         delBtn.setOnAction(e -> {
             Queue sel = table.getSelectionModel().getSelectedItem();
-            if (sel != null && Queue.delete(sel)) masterData.remove(sel);
+            if (sel != null && Queue.delete(sel)) {
+                refreshData();
+            }
         });
+
+        Button refreshBtn = new Button("🔄 Refresh");
+        refreshBtn.setStyle(primaryButton());
+        refreshBtn.setOnAction(e -> refreshData());
 
         searchField.setOnKeyPressed(k -> {
             if (k.getCode() == KeyCode.ENTER) table.requestFocus();
         });
 
-        box.getChildren().addAll(searchField, table, form, delBtn);
+        box.getChildren().addAll(searchField, table, form, new HBox(10, delBtn, refreshBtn));
         return box;
+    }
+
+    private void refreshData() {
+        masterData.setAll(Queue.fetchAll());
     }
 
     private void addQueueEntry(TextField fName, TextField fNumber, TextField fComplaint, TextField fTime, ComboBox<String> fStatus) {
@@ -222,7 +238,7 @@ public class QueueView {
             arrival = null;
         }
         Queue created = Queue.add(fName.getText().trim(), fNumber.getText().trim(), fComplaint.getText().trim(), arrival, "", fStatus.getValue());
-        if (created != null) masterData.add(0, created);
+        // if (created != null) masterData.add(0, created); // Removed, using refreshData() instead
         fName.clear();
         fNumber.clear();
         fComplaint.clear();

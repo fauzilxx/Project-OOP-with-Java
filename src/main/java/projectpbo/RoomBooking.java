@@ -49,20 +49,40 @@ public class RoomBooking {
     public StringProperty patient_nameProperty() {
         return patient_name;
     }
-    public String getAddress() { return address.get(); }
-    public StringProperty addressProperty() { return address; }
+    public String getAddress() {
+        return address.get();
+    }
+    public StringProperty addressProperty() {
+        return address;
+    }
     
-    public String getRoomName() { return room_name.get(); }
-    public StringProperty roomNameProperty() { return room_name; }
+    public String getRoomName() {
+        return room_name.get();
+    }
+    public StringProperty roomNameProperty() {
+        return room_name;
+    }
     
-    public String getRoomType() { return room_type.get(); }
-    public StringProperty roomTypeProperty() { return room_type; }
+    public String getRoomType() {
+        return room_type.get();
+    }
+    public StringProperty roomTypeProperty() {
+        return room_type;
+    }
     
-    public String getCheckIn() { return check_in.get(); }
-    public StringProperty checkInProperty() { return check_in; }
+    public String getCheckIn() {
+        return check_in.get();
+    }
+    public StringProperty checkInProperty() {
+        return check_in;
+    }
     
-    public String getCheckOut() { return check_out.get(); }
-    public StringProperty checkOutProperty() { return check_out; }
+    public String getCheckOut() {
+        return check_out.get();
+    }
+    public StringProperty checkOutProperty() {
+        return check_out;
+    }
     
     public String getDays() {
         return days.get();

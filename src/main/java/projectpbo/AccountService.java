@@ -89,7 +89,7 @@ public class AccountService {
         try {
             String host = envOr("SMTP_HOST", "smtp.gmail.com");
             String port = envOr("SMTP_PORT", "587");
-            String user = envOr("SMTP_USER", "fauzilazhim12@student.uns.ac.id");
+            String user = envOr("SMTP_USER", "nasihuyhospital@gmail.com");
             String pass = envOr("SMTP_PASS", null);
             String from = envOr("SMTP_FROM", user);
 
@@ -133,5 +133,41 @@ public class AccountService {
     private static String envOr(String key, String def) {
         String v = System.getenv(key);
         return (v == null || v.isBlank()) ? def : v;
+    }
+
+    // Send registration confirmation email
+    public static void sendRegistrationConfirmation(String toEmail, String subject, String htmlBody) throws Exception {
+        String host = envOr("SMTP_HOST", "smtp.gmail.com");
+        String port = envOr("SMTP_PORT", "587");
+        String from = envOr("SMTP_USER", "nasihuyhospital@gmail.com");
+        String user = envOr("SMTP_USER", "nasihuyhospital@gmail.com");
+        String pass = envOr("SMTP_PASS", "your-app-password");
+
+        try {
+            Properties props = new Properties();
+            props.put("mail.smtp.auth", "true");
+            props.put("mail.smtp.starttls.enable", "true");
+            props.put("mail.smtp.host", host);
+            props.put("mail.smtp.port", port);
+
+            Session session = Session.getInstance(props, new Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(user, pass);
+                }
+            });
+
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(from));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+            message.setSubject(subject);
+            message.setContent(htmlBody, "text/html; charset=utf-8");
+
+            Transport.send(message);
+            System.out.println("Email registrasi terkirim ke: " + toEmail);
+        } catch (Exception e) {
+            System.err.println("Gagal mengirim email registrasi: " + e.getMessage());
+            throw e;
+        }
     }
 }

@@ -273,26 +273,32 @@ public class ForgotPasswordView {
         sendBtn.setDisable(true);
         sendBtn.setText("Mengirim…");
 
-        boolean sent = AccountService.requestPasswordReset(email);
-        sendBtn.setDisable(false);
-        sendBtn.setText("Kirim Kode OTP");
+        // Run in background thread
+        new Thread(() -> {
+            boolean sent = AccountService.requestPasswordReset(email);
+            
+            javafx.application.Platform.runLater(() -> {
+                sendBtn.setDisable(false);
+                sendBtn.setText("Kirim Kode OTP");
 
-        if (sent) {
-            Alert a = new Alert(Alert.AlertType.INFORMATION);
-            a.setTitle("Reset Password");
-            a.setHeaderText(null);
-            a.setContentText("Kode OTP telah dikirim ke " + email + ". Periksa email Anda.");
-            a.showAndWait();
+                if (sent) {
+                    Alert a = new Alert(Alert.AlertType.INFORMATION);
+                    a.setTitle("Reset Password");
+                    a.setHeaderText(null);
+                    a.setContentText("Kode OTP telah dikirim ke " + email + ". Periksa email Anda.");
+                    a.showAndWait();
 
-            // Show OTP + new password fields
-            setResetFieldsVisible(true);
-        } else {
-            Alert a = new Alert(Alert.AlertType.ERROR);
-            a.setTitle("Gagal Mengirim OTP");
-            a.setHeaderText(null);
-            a.setContentText("Tidak dapat mengirim OTP. Pastikan email terdaftar dan konfigurasi SMTP benar.");
-            a.showAndWait();
-        }
+                    // Show OTP + new password fields
+                    setResetFieldsVisible(true);
+                } else {
+                    Alert a = new Alert(Alert.AlertType.ERROR);
+                    a.setTitle("Gagal Mengirim OTP");
+                    a.setHeaderText(null);
+                    a.setContentText("Tidak dapat mengirim OTP. Pastikan email terdaftar dan konfigurasi SMTP benar.");
+                    a.showAndWait();
+                }
+            });
+        }).start();
     }
 
     private void handleReset() {

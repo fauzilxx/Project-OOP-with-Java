@@ -12,6 +12,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
@@ -138,23 +139,26 @@ public class RegisterView {
         container.setPadding(new Insets(48, 54, 36, 54));
         container.setSpacing(20);
         container.setAlignment(Pos.TOP_CENTER);
-        container.setStyle("-fx-background-color: #ffffff;");
+        container.setStyle("-fx-background-color: #f8fafb;");
 
-        VBox header = new VBox(8);
+        VBox header = new VBox(12);
         header.setAlignment(Pos.CENTER);
+        header.setPadding(new Insets(0, 0, 16, 0));
         Region logo = new Region();
-        logo.setPrefSize(56, 56);
-        logo.setStyle("-fx-background-radius: 14; -fx-background-color: linear-gradient(to bottom right, #1ea4ff, #0c7bd6);");
+        logo.setPrefSize(60, 60);
+        logo.setStyle("-fx-background-radius: 16; -fx-background-color: linear-gradient(to bottom right, #0ea5e9, #0284c7); -fx-effect: dropshadow(gaussian, rgba(14,165,233,0.25), 12, 0, 0, 4);");
         Label hospital = new Label("Nasihuy Hospital");
         hospital.setTextFill(Color.WHITE);
-        hospital.setFont(Font.font(24));
+        hospital.setFont(Font.font("System", FontWeight.BOLD, 18));
+        hospital.setAlignment(Pos.CENTER);
         StackPane logoStack = new StackPane(logo, hospital);
+        logoStack.setPrefSize(60, 60);
         Label title = new Label("Buat Akun Baru");
-        title.setFont(Font.font("System", FontWeight.BOLD, 24));
-        title.setTextFill(Color.web("#04292B"));
+        title.setFont(Font.font("System", FontWeight.BOLD, 26));
+        title.setTextFill(Color.web("#0f172a"));
         Label sub = new Label("Lengkapi formulir untuk mendaftar");
-        sub.setTextFill(Color.web("#6b7b7d"));
-        sub.setFont(Font.font(13));
+        sub.setTextFill(Color.web("#64748b"));
+        sub.setFont(Font.font("System", 13));
         header.getChildren().addAll(logoStack, title, sub);
 
         VBox form = new VBox(8);
@@ -164,25 +168,29 @@ public class RegisterView {
 
         // Username
         Label userLabel = new Label("Username");
-        userLabel.setFont(Font.font(13));
+        userLabel.setFont(Font.font("System", FontWeight.SEMI_BOLD, 13));
+        userLabel.setTextFill(Color.web("#334155"));
         HBox userRow = iconFieldRow("👤", usernameField = new TextField(), "Masukkan username");
         usernameError = errorLabel();
 
         // Email
         Label emailLabel = new Label("Email");
-        emailLabel.setFont(Font.font(13));
+        emailLabel.setFont(Font.font("System", FontWeight.SEMI_BOLD, 13));
+        emailLabel.setTextFill(Color.web("#334155"));
         HBox emailRow = iconFieldRow("✉", emailField = new TextField(), "Masukkan email");
         emailError = errorLabel();
 
         // Phone
         Label phoneLabel = new Label("Nomor HP");
-        phoneLabel.setFont(Font.font(13));
+        phoneLabel.setFont(Font.font("System", FontWeight.SEMI_BOLD, 13));
+        phoneLabel.setTextFill(Color.web("#334155"));
         HBox phoneRow = iconFieldRow("☎", phoneField = new TextField(), "Contoh: 081234567890");
         phoneError = errorLabel();
 
         // Password
         Label passLabel = new Label("Password");
-        passLabel.setFont(Font.font(13));
+        passLabel.setFont(Font.font("System", FontWeight.SEMI_BOLD, 13));
+        passLabel.setTextFill(Color.web("#334155"));
         passwordField = new PasswordField();
         passwordField.setPromptText("Masukkan password");
         passwordVisibleField = new TextField();
@@ -192,7 +200,8 @@ public class RegisterView {
 
         // Confirm
         Label confLabel = new Label("Konfirmasi Password");
-        confLabel.setFont(Font.font(13));
+        confLabel.setFont(Font.font("System", FontWeight.SEMI_BOLD, 13));
+        confLabel.setTextFill(Color.web("#334155"));
         confirmField = new PasswordField();
         confirmField.setPromptText("Ulangi password");
         confirmVisibleField = new TextField();
@@ -234,7 +243,19 @@ public class RegisterView {
                 loginRow
         );
 
-        container.getChildren().addAll(header, form, footer);
+        // Bungkus header dan form dengan ScrollPane untuk scroll ability
+        VBox scrollContent = new VBox();
+        scrollContent.setSpacing(20);
+        scrollContent.getChildren().addAll(header, form);
+        
+        ScrollPane scrollPane = new ScrollPane(scrollContent);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setStyle("-fx-background-color: #f8fafb; -fx-control-inner-background: #f8fafb; -fx-font-size: 13; -fx-padding: 0;");
+        VBox.setVgrow(scrollPane, Priority.ALWAYS);
+
+        container.getChildren().addAll(scrollPane, footer);
         return container;
     }
 
@@ -515,14 +536,14 @@ public class RegisterView {
         return "-fx-background-color: #fff6f6; -fx-border-color: #e06b6b; -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 0 10 0 10; -fx-font-size: 14;";
     }
     private String buttonPrimary() {
-        return "-fx-background-radius: 10; -fx-background-insets: 0; -fx-font-weight: 600; -fx-text-fill: white; -fx-background-color: linear-gradient(to right, #2ea0ff, #1a73e8); -fx-effect: dropshadow(two-pass-box, rgba(0,0,0,0.08), 6, 0.0, 0, 2);";
+        return "-fx-background-radius: 10; -fx-background-insets: 0; -fx-font-weight: 600; -fx-font-size: 14; -fx-text-fill: white; -fx-background-color: linear-gradient(to right, #0ea5e9, #0284c7); -fx-effect: dropshadow(gaussian, rgba(14,165,233,0.25), 8, 0, 0, 4); -fx-cursor: hand;";
     }
 
     private String inputContainerStyle() {
-        return "-fx-background-color: #ffffff; -fx-border-color: #d2e3ee; -fx-border-width: 1; -fx-background-radius: 12; -fx-border-radius: 12;";
+        return "-fx-background-color: #ffffff; -fx-border-color: #e2e8f0; -fx-border-width: 1; -fx-background-radius: 10; -fx-border-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 4, 0, 0, 2);";
     }
     private String inputContainerFocusedStyle() {
-        return "-fx-background-color: #ffffff; -fx-border-color: #86a8ff; -fx-border-width: 1.2; -fx-background-radius: 12; -fx-border-radius: 12;";
+        return "-fx-background-color: #ffffff; -fx-border-color: #0ea5e9; -fx-border-width: 1.5; -fx-background-radius: 10; -fx-border-radius: 10; -fx-effect: dropshadow(gaussian, rgba(14,165,233,0.15), 8, 0, 0, 3);";
     }
     private String innerFieldStyle() {
         return "-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0; -fx-font-size: 14;";
