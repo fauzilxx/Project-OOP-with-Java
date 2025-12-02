@@ -167,13 +167,7 @@ public class LoginView {
         container.setMaxWidth(Double.MAX_VALUE);
         container.setMaxHeight(Double.MAX_VALUE);
 
-        Region logo = new Region();
-        logo.setPrefSize(56, 56);
-        logo.setStyle("-fx-background-radius: 14; -fx-background-color: linear-gradient(to bottom right, #1ea4ff, #0c7bd6);");
-        Label hospital = new Label("Nasihuy Hospital");
-        hospital.setTextFill(Color.WHITE);
-        hospital.setFont(Font.font(24));
-        StackPane logoStack = new StackPane(logo, hospital);
+        
 
         Label welcome = new Label("Welcome Back");
         welcome.setFont(Font.font("System", FontWeight.BOLD, 24));
@@ -183,7 +177,7 @@ public class LoginView {
         subtitle.setTextFill(Color.web("#6b7b7d"));
         subtitle.setFont(Font.font(13));
 
-        header.getChildren().addAll(logoStack, welcome, subtitle);
+        header.getChildren().addAll( welcome, subtitle);
 
         VBox form = new VBox(12);
         form.setMinWidth(360);
@@ -320,11 +314,6 @@ public class LoginView {
         });
         quickRegisterBtn.setCursor(Cursor.HAND);
 
-        Label footer = new Label("© 2025 Nasihuy Hospital All rights reserved.");
-        footer.setFont(Font.font(11));
-        footer.setTextFill(Color.web("#9aa5a6"));
-        footer.setAlignment(Pos.CENTER);
-        footer.setPadding(new Insets(12, 0, 0, 0));
 
         form.getChildren().addAll(
                 userLabel,
@@ -340,7 +329,7 @@ public class LoginView {
                 quickRegisterBtn
         );
 
-        container.getChildren().addAll(header, form, footer);
+        container.getChildren().addAll(header, form);
 
         return container;
     }

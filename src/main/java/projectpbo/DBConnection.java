@@ -137,6 +137,8 @@ public class DBConnection {
                 ensureQueueExtraColumnsExists(stmt);
                 // Migrate existing 'queues' table to use patient_number PK and drop legacy patient_rm
                 migrateQueuesPatientNumber(stmt);
+                // Migrate existing 'drug_orders' table to use patient_number
+                migrateDrugOrdersPatientNumber(stmt);
                 ensureAddressColumnExists(stmt);
                 ensureOutpatientStatusColumnExists(stmt);
 
@@ -293,6 +295,38 @@ public class DBConnection {
             }
         } catch (SQLException e) {
             System.err.println("Gagal migrasi queues ke patient_number: " + e.getMessage());
+        }
+    }
+
+    // Ensure existing databases migrate from legacy patient_rm to patient_number in drug_orders
+    private static void migrateDrugOrdersPatientNumber(Statement stmt) {
+        try {
+            // 1) Ensure patient_number column exists
+            ResultSet cNum = stmt.executeQuery("SHOW COLUMNS FROM drug_orders LIKE 'patient_number'");
+            if (!cNum.next()) {
+                stmt.execute("ALTER TABLE drug_orders ADD COLUMN patient_number VARCHAR(20) AFTER patient_name");
+                System.out.println("Kolom 'patient_number' ditambahkan ke tabel drug_orders (migrasi).");
+            }
+
+            // 2) If legacy patient_rm exists, backfill patient_number
+            boolean hasPrm = false;
+            ResultSet cRm = stmt.executeQuery("SHOW COLUMNS FROM drug_orders LIKE 'patient_rm'");
+            if (cRm.next()) {
+                hasPrm = true;
+                stmt.executeUpdate(
+                    "UPDATE drug_orders SET patient_number = patient_rm " +
+                    "WHERE (patient_number IS NULL OR patient_number = '') AND patient_rm IS NOT NULL AND patient_rm <> ''"
+                );
+            }
+
+            // 3) Drop or relax legacy patient_rm to avoid errors
+            if (hasPrm) {
+                try { stmt.execute("ALTER TABLE drug_orders MODIFY patient_rm VARCHAR(20) NULL"); } catch (SQLException ignore) { }
+                // Optional: drop it if you are sure
+                // try { stmt.execute("ALTER TABLE drug_orders DROP COLUMN patient_rm"); } catch (SQLException ignore) { }
+            }
+        } catch (SQLException e) {
+            System.err.println("Gagal migrasi drug_orders ke patient_number: " + e.getMessage());
         }
     }
 

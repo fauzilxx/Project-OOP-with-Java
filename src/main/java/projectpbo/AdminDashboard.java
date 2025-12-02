@@ -99,7 +99,7 @@ public class AdminDashboard {
             }
         });
 
-        header.getChildren().addAll(branding, spacer, logoutBtn);
+        header.getChildren().addAll(title, spacer, logoutBtn);
         return header;
     }
 

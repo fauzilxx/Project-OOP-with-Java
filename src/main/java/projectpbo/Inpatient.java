@@ -117,6 +117,7 @@ public class Inpatient {
         return null;
     }
 
+
     public static boolean update(Inpatient ip) {
         String sql = "UPDATE inpatients SET name=?, illness=?, room=?, doctor=?, address=? WHERE patient_number=?";
         try (Connection conn = DBConnection.getConnection();

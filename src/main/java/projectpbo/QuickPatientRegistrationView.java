@@ -411,7 +411,6 @@ public class QuickPatientRegistrationView {
             pstmt.setTimestamp(9, Timestamp.valueOf(LocalDateTime.now()));
             
             pstmt.executeUpdate();
-            System.out.println("Pasien " + patientNumber + " berhasil didaftarkan dalam antrian no: " + queueNumber);
         }
     }
 

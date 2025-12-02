@@ -244,19 +244,17 @@ public class RegisterView {
         );
 
         // Bungkus header dan form dengan ScrollPane untuk scroll ability
-        VBox scrollContent = new VBox();
-        scrollContent.setSpacing(20);
-        scrollContent.getChildren().addAll(header, form);
-        
-        ScrollPane scrollPane = new ScrollPane(scrollContent);
+        container.getChildren().addAll(header, form);
+
+        ScrollPane scrollPane = new ScrollPane(container);
         scrollPane.setFitToWidth(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setStyle("-fx-background-color: #f8fafb; -fx-control-inner-background: #f8fafb; -fx-font-size: 13; -fx-padding: 0;");
+        scrollPane.setStyle("-fx-background-color: #f8fafb; -fx-control-inner-background: #f8fafb;");
+        
+        VBox root = new VBox(scrollPane);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
-
-        container.getChildren().addAll(scrollPane, footer);
-        return container;
+        return root;
     }
 
     private void navigateLogin() {
