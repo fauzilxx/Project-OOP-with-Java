@@ -1,3 +1,4 @@
+projectpbo\PatientDashboard$1.class
 projectpbo\Revenue.class
 projectpbo\RevenueView$1.class
 projectpbo\RoomBookingView$RoomType.class
@@ -18,11 +19,11 @@ projectpbo\Doctor.class
 projectpbo\RegisterView.class
 projectpbo\Revenue$RevenueRecord.class
 projectpbo\RoomBookingView.class
+projectpbo\PatientDashboard.class
 projectpbo\RoomBooking.class
 projectpbo\DrugOrder$Drug.class
 projectpbo\DrugOrder.class
 projectpbo\QueueView.class
-projectpbo\QuickPatientRegistrationView.class
 projectpbo\AdminDashboard.class
 projectpbo\RevenueView.class
 projectpbo\DrugOrderView$CartItem.class

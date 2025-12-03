@@ -348,8 +348,8 @@ public class RegisterView {
         }
 
 
-        // Register user as admin automatically, simpan nomor HP
-        if (DBConnection.register(username, email, phone, pass, "admin")) {
+        // Register user as patient automatically, simpan nomor HP
+        if (DBConnection.register(username, email, phone, pass, "patient")) {
             Alert a = new Alert(Alert.AlertType.INFORMATION);
             a.setTitle("Registrasi Berhasil");
             a.setHeaderText(null);

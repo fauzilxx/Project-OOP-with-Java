@@ -31,10 +31,12 @@ public class ForgotPasswordView {
     private final Stage hostStage;
     private TextField emailField;
     private Label emailError;
+    private Button sendBtn;
     private TextField otpField;
     private javafx.scene.control.PasswordField newPassField;
     private javafx.scene.control.PasswordField confirmPassField;
     private Label resetError;
+    private Button resetBtn;
 
     public static Parent createRoot(Stage stage) {
         return new ForgotPasswordView(stage).build();
@@ -133,6 +135,7 @@ public class ForgotPasswordView {
         backRow.setAlignment(Pos.CENTER_LEFT);
         Hyperlink back = new Hyperlink("Kembali ke Login");
         back.setBorder(Border.EMPTY);
+        back.setFocusTraversable(false);
         back.setOnAction(e -> navigateLogin());
         Label arrow = new Label("←");
         arrow.setTextFill(Color.web("#0b5ed7"));
@@ -140,20 +143,13 @@ public class ForgotPasswordView {
 
         VBox header = new VBox(8);
         header.setAlignment(Pos.CENTER);
-        Region logo = new Region();
-        logo.setPrefSize(56, 56);
-        logo.setStyle("-fx-background-radius: 14; -fx-background-color: linear-gradient(to bottom right, #1ea4ff, #0c7bd6);");
-        Label hospital = new Label("Nasihuy Hospital");
-        hospital.setTextFill(Color.WHITE);
-        hospital.setFont(Font.font(24));
-        StackPane logoStack = new StackPane(logo, hospital);
         Label title = new Label("Reset Password");
         title.setFont(Font.font("System", FontWeight.BOLD, 24));
         title.setTextFill(Color.web("#04292B"));
         Label sub = new Label("Masukkan email Anda untuk menerima kode OTP reset password");
         sub.setTextFill(Color.web("#6b7b7d"));
-        sub.setFont(Font.font(13));
-        header.getChildren().addAll(logoStack, title, sub);
+        sub.setFont(Font.font(14));
+        header.getChildren().addAll(title, sub);
 
         VBox form = new VBox(12);
         form.setMinWidth(360);
@@ -173,7 +169,7 @@ public class ForgotPasswordView {
         mailIcon.setFont(Font.font(14));
         emailField = new TextField();
         emailField.setPromptText("Masukkan email Anda");
-        emailField.setPrefHeight(42);
+        emailField.setPrefHeight(53);
         emailField.setStyle(fieldDefaultStyle());
         HBox.setHgrow(emailField, Priority.ALWAYS);
         emailRow.getChildren().addAll(mailIcon, emailField);
@@ -183,56 +179,60 @@ public class ForgotPasswordView {
         emailError.setFont(Font.font(12));
         emailError.setVisible(false);
 
-        Button sendBtn = new Button("Kirim Kode OTP");
-        sendBtn.setPrefHeight(44);
+        sendBtn = new Button("Kirim Kode OTP");
+        sendBtn.setPrefHeight(53);
         sendBtn.setMaxWidth(Double.MAX_VALUE);
         sendBtn.setStyle(buttonPrimary());
         sendBtn.setCursor(Cursor.HAND);
         sendBtn.setOnAction(e -> handleSend(sendBtn));
+        sendBtn.setDefaultButton(true);
 
         // OTP + New Password area (initially hidden)
         Label otpLabel = new Label("Kode OTP");
-        otpLabel.setFont(Font.font(13));
+        otpLabel.setFont(Font.font(14));
         otpField = new TextField();
         otpField.setPromptText("Masukkan 6 digit OTP");
-        otpField.setPrefHeight(42);
+        otpField.setPrefHeight(53);
+        otpField.setMaxWidth(Double.MAX_VALUE);
         otpField.setStyle(fieldDefaultStyle());
         otpField.setVisible(false);
         otpField.setManaged(false);
 
         Label newPassLabel = new Label("Password Baru");
-        newPassLabel.setFont(Font.font(13));
+        newPassLabel.setFont(Font.font(14));
         newPassField = new javafx.scene.control.PasswordField();
         newPassField.setPromptText("Minimal 8 karakter, kombinasi huruf & angka");
-        newPassField.setPrefHeight(42);
+        newPassField.setPrefHeight(53);
+        newPassField.setMaxWidth(Double.MAX_VALUE);
         newPassField.setStyle(fieldDefaultStyle());
         newPassField.setVisible(false);
         newPassField.setManaged(false);
 
         Label confirmPassLabel = new Label("Konfirmasi Password Baru");
-        confirmPassLabel.setFont(Font.font(13));
+        confirmPassLabel.setFont(Font.font(14));
         confirmPassField = new javafx.scene.control.PasswordField();
         confirmPassField.setPromptText("Ulangi password baru");
-        confirmPassField.setPrefHeight(42);
+        confirmPassField.setPrefHeight(53);
+        confirmPassField.setMaxWidth(Double.MAX_VALUE);
         confirmPassField.setStyle(fieldDefaultStyle());
         confirmPassField.setVisible(false);
         confirmPassField.setManaged(false);
 
         resetError = new Label();
         resetError.setTextFill(Color.web("#c92a2a"));
-        resetError.setFont(Font.font(12));
+        resetError.setFont(Font.font(14));
         resetError.setVisible(false);
         resetError.setManaged(false);
 
-        Button resetBtn = new Button("Reset Password");
-        resetBtn.setPrefHeight(44);
+        resetBtn = new Button("Reset Password");
+        resetBtn.setPrefHeight(58);
         resetBtn.setMaxWidth(Double.MAX_VALUE);
         resetBtn.setStyle(buttonPrimary());
         resetBtn.setCursor(Cursor.HAND);
         resetBtn.setOnAction(e -> handleReset());
         resetBtn.setVisible(false);
         resetBtn.setManaged(false);
-        resetBtn.setDefaultButton(true);
+        // resetBtn.setDefaultButton(true); // Will be set when visible
 
         Label footer = new Label("© 2025 Nasihuy Hospital All rights reserved.");
         footer.setFont(Font.font(11));
@@ -250,6 +250,9 @@ public class ForgotPasswordView {
             resetError, resetBtn
         );
         container.getChildren().addAll(backRow, header, form, footer);
+        
+        javafx.application.Platform.runLater(() -> emailField.requestFocus());
+        
         return container;
     }
 
@@ -347,18 +350,14 @@ public class ForgotPasswordView {
         confirmPassField.setManaged(visible);
         resetError.setVisible(false);
         resetError.setManaged(visible);
-        // The reset button is the next node after resetError in the form; easier to toggle by searching parent
-        // But since we created a reference during creation, we kept it anonymous. Instead, toggle via managed/visible on confirmPass but here we handle only fields.
-        // We will find and show the last button in parent container
-        VBox parent = (VBox) otpField.getParent();
-        for (javafx.scene.Node n : parent.getChildren()) {
-            if (n instanceof Button) {
-                Button b = (Button) n;
-                if ("Reset Password".equals(b.getText())) {
-                    b.setVisible(visible);
-                    b.setManaged(visible);
-                }
-            }
+        
+        if (resetBtn != null) {
+            resetBtn.setVisible(visible);
+            resetBtn.setManaged(visible);
+            resetBtn.setDefaultButton(visible);
+        }
+        if (sendBtn != null) {
+            sendBtn.setDefaultButton(!visible);
         }
     }
 
@@ -377,7 +376,7 @@ public class ForgotPasswordView {
     }
 
     private String fieldDefaultStyle() {
-        return "-fx-background-color: #fbfdfe; -fx-border-color: #d6e6e6; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 0 10 0 10; -fx-font-size: 13;";
+        return "-fx-background-color: #fbfdfe; -fx-border-color: #d6e6e6; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 0 15 0 15; -fx-font-size: 14;";
     }
 
     private String fieldErrorStyle() {

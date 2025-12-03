@@ -399,6 +399,22 @@ public class DBConnection {
         }
     }
 
+    public static String getUserRole(String username) {
+        String sql = "SELECT role FROM users WHERE username = ?";
+        try (Connection conn = getConnection();
+             java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            try (java.sql.ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("role");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "patient"; // Default fallback
+    }
+
     public static boolean register(String username, String password, String role) {
         return register(username, null, null, password, role);
     }

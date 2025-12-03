@@ -16,9 +16,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -29,8 +29,11 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
-public class QuickPatientRegistrationView {
+public class PatientDashboard {
+
+    private final Stage stage;
     
+    // Form fields
     private TextField nameField;
     private TextField phoneField;
     private TextField emailField;
@@ -42,235 +45,219 @@ public class QuickPatientRegistrationView {
     private Label addressError;
     private Label symptomsError;
     private Button registerBtn;
-    private Button backBtn;
-    private final Stage hostStage;
 
-    public static Parent createRoot(Stage stage) {
-        QuickPatientRegistrationView view = new QuickPatientRegistrationView(stage);
-        return view.build();
+    public PatientDashboard(Stage stage) {
+        this.stage = stage;
     }
 
-    public QuickPatientRegistrationView(Stage stage) {
-        this.hostStage = stage;
-    }
-
-    private Parent build() {
+    public Parent build() {
         HBox root = new HBox();
-        root.setPrefSize(1200, 650);
-        root.setMinWidth(900);
-        root.setMinHeight(500);
+        root.setPrefSize(1200, 700);
 
-        StackPane leftPane = createLeftPane();
-        VBox rightPane = createRightPane();
+        // Left Panel (Branding)
+        StackPane leftPanel = buildLeftPanel();
+        HBox.setHgrow(leftPanel, Priority.ALWAYS);
+        leftPanel.setPrefWidth(600);
 
-        // Panel 50:50
-        HBox.setHgrow(leftPane, Priority.ALWAYS);
-        HBox.setHgrow(rightPane, Priority.ALWAYS);
-        leftPane.setPrefWidth(600);
-        rightPane.setPrefWidth(600);
+        // Right Panel (Form + Header)
+        BorderPane rightPanel = new BorderPane();
+        rightPanel.setTop(buildHeader());
+        rightPanel.setCenter(buildContent());
+        HBox.setHgrow(rightPanel, Priority.ALWAYS);
+        rightPanel.setPrefWidth(600);
+        rightPanel.setStyle("-fx-background-color: #f8fafc;");
 
-        root.getChildren().addAll(leftPane, rightPane);
+        root.getChildren().addAll(leftPanel, rightPanel);
         return root;
     }
 
-    private StackPane createLeftPane() {
+    private StackPane buildLeftPanel() {
         StackPane stack = new StackPane();
-        stack.setStyle("-fx-background-color: linear-gradient(to bottom right, #075985, #06b6d4);");
-        stack.setPadding(new Insets(36));
+        stack.setStyle("-fx-background-color: linear-gradient(to bottom right, #0ea5e9, #0284c7);");
+        stack.setPadding(new Insets(40));
 
-        // Card with rounded corners and shadow that will hold the image
-        StackPane card = new StackPane();
-        card.setPrefWidth(560);
-        card.setPrefHeight(520);
-        card.setStyle("-fx-background-color: white; -fx-background-radius: 16; -fx-padding: 28;");
-        card.setEffect(new DropShadow(24, Color.rgb(0, 0, 0, 0.18)));
+        VBox content = new VBox(24);
+        content.setAlignment(Pos.CENTER);
 
-        ImageView iv = new ImageView();
-        iv.setFitWidth(420);
-        iv.setPreserveRatio(true);
+        // Logo
+        ImageView logoView = new ImageView();
+        logoView.setFitWidth(300);
+        logoView.setPreserveRatio(true);
         try {
-            if (QuickPatientRegistrationView.class.getResource("/assets/hospital-logo.jpg") != null) {
-                String imagePath = QuickPatientRegistrationView.class.getResource("/assets/hospital-logo.jpg").toExternalForm();
-                Image img = new Image(imagePath, true);
-                iv.setImage(img);
-            } else {
-                System.out.println("Resource not found: /assets/hospital-logo.jpg");
+            if (getClass().getResource("/assets/hospital-logo.jpg") != null) {
+                logoView.setImage(new Image(getClass().getResourceAsStream("/assets/hospital-logo.jpg")));
             }
         } catch (Exception e) {
-            System.err.println("Image load failed: " + e.getMessage());
+            System.err.println("Logo not found");
         }
 
-        iv.setPreserveRatio(true);
-        iv.setSmooth(true);
-        iv.setFitWidth(420);
-        iv.setFitHeight(420);
-        StackPane.setAlignment(iv, Pos.CENTER);
+        // Branding Text
+        Label brandTitle = new Label("Nasihuy Hospital");
+        brandTitle.setFont(Font.font("Segoe UI", FontWeight.BOLD, 32));
+        brandTitle.setTextFill(Color.WHITE);
 
-        card.getChildren().add(iv);
+        Label brandSubtitle = new Label("Selalu hadir untuk mendukung kebutuhan kesehatan Anda");
+        brandSubtitle.setFont(Font.font("Segoe UI", 18));
+        brandSubtitle.setTextFill(Color.web("#e0f2fe"));
 
-        // Caption below the card
-        VBox captionBox = new VBox(10);
-        captionBox.setAlignment(Pos.CENTER);
-        captionBox.setPadding(new Insets(18, 0, 6, 0));
+        content.getChildren().addAll(logoView, brandTitle, brandSubtitle);
+        stack.getChildren().add(content);
 
-        Label title = new Label("Nasihuy Hospital");
-        title.setTextFill(Color.WHITE);
-        title.setFont(Font.font("System", FontWeight.BOLD, 20));
-        title.setWrapText(true);
-
-        Label subtitle = new Label("Pendaftaran Pasien Antrian Periksa");
-        subtitle.setTextFill(Color.web("#e6f7fb", 0.95));
-        subtitle.setFont(Font.font(13));
-
-        captionBox.getChildren().addAll(title, subtitle);
-
-        // Decorative circles
-        Region circle1 = new Region();
-        circle1.setStyle("-fx-background-color: rgba(255,255,255,0.12); -fx-background-radius: 999;");
-        circle1.prefWidthProperty().bind(stack.widthProperty().multiply(0.10));
-        circle1.prefHeightProperty().bind(circle1.prefWidthProperty());
-        StackPane.setAlignment(circle1, Pos.TOP_RIGHT);
-        StackPane.setMargin(circle1, new Insets(40, 40, 0, 0));
-
-        Region circle2 = new Region();
-        circle2.setStyle("-fx-background-color: rgba(255,255,255,0.08); -fx-background-radius: 999;");
-        circle2.prefWidthProperty().bind(stack.widthProperty().multiply(0.16));
-        circle2.prefHeightProperty().bind(circle2.prefWidthProperty());
-        StackPane.setAlignment(circle2, Pos.BOTTOM_LEFT);
-        StackPane.setMargin(circle2, new Insets(0, 0, 30, 30));
-
-        VBox leftBox = new VBox(12, card, captionBox);
-        leftBox.setAlignment(Pos.CENTER);
-        stack.getChildren().addAll(leftBox, circle1, circle2);
         return stack;
     }
 
-    private VBox createRightPane() {
-        VBox container = new VBox();
-        container.setPadding(new Insets(0));
-        container.setSpacing(0);
+    private HBox buildHeader() {
+        HBox header = new HBox(16);
+        header.setPadding(new Insets(20, 40, 20, 40));
+        header.setAlignment(Pos.CENTER_RIGHT); // Align to right since it's in right panel
+        header.setStyle("-fx-background-color: white; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05),10,0,0,2);");
+
+        Label portalLabel = new Label("Patient Portal");
+        portalLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 18));
+        portalLabel.setTextFill(Color.web("#64748b"));
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button logoutBtn = new Button("Sign Out");
+        logoutBtn.setStyle("-fx-background-color: white; -fx-border-color: #ef4444; -fx-border-radius: 20; -fx-border-width: 1.5; -fx-text-fill: #ef4444; -fx-font-weight: bold; -fx-padding: 8 20; -fx-cursor: hand;");
+        logoutBtn.setOnMouseEntered(e -> logoutBtn.setStyle("-fx-background-color: #ef4444; -fx-border-color: #ef4444; -fx-border-radius: 20; -fx-border-width: 1.5; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 20; -fx-cursor: hand;"));
+        logoutBtn.setOnMouseExited(e -> logoutBtn.setStyle("-fx-background-color: white; -fx-border-color: #ef4444; -fx-border-radius: 20; -fx-border-width: 1.5; -fx-text-fill: #ef4444; -fx-font-weight: bold; -fx-padding: 8 20; -fx-cursor: hand;"));
+        
+        logoutBtn.setOnAction(e -> {
+            stage.getScene().setRoot(LoginView.createRoot(stage));
+        });
+
+        header.getChildren().addAll(portalLabel, spacer, logoutBtn);
+        return header;
+    }
+
+    private VBox buildContent() {
+        VBox container = new VBox(24);
+        container.setPadding(new Insets(30, 40, 40, 40));
         container.setAlignment(Pos.TOP_CENTER);
         container.setStyle("-fx-background-color: #f8fafb;");
 
-        VBox header = new VBox(8);
-        header.setAlignment(Pos.CENTER);
-        header.setPadding(new Insets(40, 54, 24, 54));
-        header.setStyle("-fx-background-color: #f8fafb;");
-
         Label mainTitle = new Label("Daftar Antrian Periksa");
-        mainTitle.setFont(Font.font("System", FontWeight.BOLD, 26));
+        mainTitle.setFont(Font.font("Segoe UI", FontWeight.BOLD, 26));
         mainTitle.setTextFill(Color.web("#0f172a"));
 
-        Label subtitle = new Label("Lengkapi data untuk pendaftaran");
-        subtitle.setFont(Font.font("System", 13));
+        Label subtitle = new Label("Silakan lengkapi formulir di bawah ini.");
+        subtitle.setFont(Font.font("Segoe UI", 14));
         subtitle.setTextFill(Color.web("#64748b"));
 
-        header.getChildren().addAll(mainTitle, subtitle);
+        VBox headerBox = new VBox(8, mainTitle, subtitle);
+        headerBox.setAlignment(Pos.CENTER);
 
-        VBox form = new VBox(12);
-        form.setMaxWidth(450);
+        VBox form = new VBox(24);
+        form.setMaxWidth(500); 
         form.setAlignment(Pos.CENTER_LEFT);
+        form.setStyle("-fx-background-color: white; -fx-padding: 30; -fx-background-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 15, 0, 0, 2);");
 
         // Nama Pasien
-        Label nameLabel = new Label("Nama Pasien *");
-        nameLabel.setFont(Font.font("System", FontWeight.NORMAL, 13));
-        nameLabel.setTextFill(Color.web("#1e293b"));
+        Label nameLabel = new Label("Nama Pasien");
+        nameLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 16));
+        nameLabel.setStyle("-fx-text-fill: #111010ff; -fx-font-weight: bold; -fx-font-size: 16px;");
+        nameLabel.setPadding(new Insets(0, 0, 6, 0));
         nameField = new TextField();
-        nameField.setPromptText("Masukkan nama lengkap");
-        nameField.setPrefHeight(40);
-        nameField.setPrefWidth(450);
+        nameField.setPromptText("Masukkan nama lengkap sesuai KTP");
+        nameField.setPrefHeight(45);
+        nameField.setMaxWidth(Double.MAX_VALUE);
         nameField.setStyle(fieldStyle());
         nameError = errorLabel();
 
         // No. Telepon
-        Label phoneLabel = new Label("No. Telepon *");
-        phoneLabel.setFont(Font.font("System", FontWeight.NORMAL, 13));
-        phoneLabel.setTextFill(Color.web("#1e293b"));
+        Label phoneLabel = new Label("Nomor Telepon / WhatsApp");
+        phoneLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 16));
+        phoneLabel.setStyle("-fx-text-fill: #111010ff; -fx-font-weight: bold; -fx-font-size: 16px;");
+        phoneLabel.setPadding(new Insets(0, 0, 6, 0));
         phoneField = new TextField();
         phoneField.setPromptText("Contoh: 081234567890");
-        phoneField.setPrefHeight(40);
-        phoneField.setPrefWidth(450);
+        phoneField.setPrefHeight(45);
+        phoneField.setMaxWidth(Double.MAX_VALUE);
         phoneField.setStyle(fieldStyle());
         phoneError = errorLabel();
 
         // Email
-        Label emailLabel = new Label("Email *");
-        emailLabel.setFont(Font.font("System", FontWeight.NORMAL, 13));
-        emailLabel.setTextFill(Color.web("#1e293b"));
+        Label emailLabel = new Label("Alamat Email");
+        emailLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 16));
+        emailLabel.setStyle("-fx-text-fill: #111010ff; -fx-font-weight: bold; -fx-font-size: 16px;");
+        emailLabel.setPadding(new Insets(0, 0, 6, 0));
         emailField = new TextField();
-        emailField.setPromptText("Masukkan email aktif");
-        emailField.setPrefHeight(40);
-        emailField.setPrefWidth(450);
+        emailField.setPromptText("email@example.com");
+        emailField.setPrefHeight(45);
+        emailField.setMaxWidth(Double.MAX_VALUE);
         emailField.setStyle(fieldStyle());
         emailError = errorLabel();
 
         // Alamat
-        Label addressLabel = new Label("Alamat *");
-        addressLabel.setFont(Font.font("System", FontWeight.NORMAL, 13));
-        addressLabel.setTextFill(Color.web("#1e293b"));
+        Label addressLabel = new Label("Alamat Lengkap");
+        addressLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 16));
+        addressLabel.setStyle("-fx-text-fill: #111010ff; -fx-font-weight: bold; -fx-font-size: 16px;");
+        addressLabel.setPadding(new Insets(0, 0, 6, 0));
         addressField = new TextField();
-        addressField.setPromptText("Alamat lengkap");
-        addressField.setPrefHeight(40);
-        addressField.setPrefWidth(450);
+        addressField.setPromptText("Jalan, Kota, Provinsi");
+        addressField.setPrefHeight(45);
+        addressField.setMaxWidth(Double.MAX_VALUE);
         addressField.setStyle(fieldStyle());
         addressError = errorLabel();
 
         // Keluhan/Gejala
-        Label symptomsLabel = new Label("Keluhan/Gejala *");
-        symptomsLabel.setFont(Font.font("System", FontWeight.NORMAL, 13));
-        symptomsLabel.setTextFill(Color.web("#1e293b"));
+        Label symptomsLabel = new Label("Keluhan / Gejala yang Dirasakan");
+        symptomsLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 16));
+        symptomsLabel.setStyle("-fx-text-fill: #111010ff; -fx-font-weight: bold; -fx-font-size: 16px;");
+        symptomsLabel.setPadding(new Insets(0, 0, 6, 0));
         symptomsField = new TextArea();
-        symptomsField.setPromptText("Contoh: Demam, batuk, sakit kepala");
-        symptomsField.setPrefHeight(80);
-        symptomsField.setPrefWidth(450);
+        symptomsField.setPromptText("Jelaskan keluhan Anda secara singkat...");
+        symptomsField.setPrefHeight(100);
+        symptomsField.setMaxWidth(Double.MAX_VALUE);
         symptomsField.setWrapText(true);
         symptomsField.setStyle(fieldStyle());
         symptomsError = errorLabel();
 
-        form.getChildren().addAll(
-                nameLabel, nameField, nameError,
-                phoneLabel, phoneField, phoneError,
-                emailLabel, emailField, emailError,
-                addressLabel, addressField, addressError,
-                symptomsLabel, symptomsField, symptomsError
-        );
-
         // Button Group
-        registerBtn = new Button("Daftar Sekarang");
-        registerBtn.setPrefHeight(44);
-        registerBtn.setPrefWidth(450);
+        registerBtn = new Button("Ambil Nomor Antrian");
+        registerBtn.setPrefHeight(50);
+        registerBtn.setMaxWidth(Double.MAX_VALUE);
         registerBtn.setStyle(buttonPrimaryStyle());
         registerBtn.setOnAction(e -> handleRegistration());
         registerBtn.setCursor(Cursor.HAND);
+        
+        // Hover effect for button
+        registerBtn.setOnMouseEntered(e -> registerBtn.setStyle(buttonPrimaryHoverStyle()));
+        registerBtn.setOnMouseExited(e -> registerBtn.setStyle(buttonPrimaryStyle()));
 
-        backBtn = new Button("Kembali ke Login");
-        backBtn.setPrefHeight(44);
-        backBtn.setPrefWidth(450);
-        backBtn.setStyle(buttonSecondaryStyle());
-        backBtn.setOnAction(e -> navigateBackToLogin());
-        backBtn.setCursor(Cursor.HAND);
+        form.getChildren().addAll(
+                createFieldGroup(nameLabel, nameField, nameError),
+                createFieldGroup(phoneLabel, phoneField, phoneError),
+                createFieldGroup(emailLabel, emailField, emailError),
+                createFieldGroup(addressLabel, addressField, addressError),
+                createFieldGroup(symptomsLabel, symptomsField, symptomsError),
+                new Region() {{ setMinHeight(10); }},
+                registerBtn
+        );
 
-        VBox buttonBox = new VBox(16);
-        buttonBox.setAlignment(Pos.CENTER);
-        buttonBox.setPadding(new Insets(24, 0, 36, 0));
-        buttonBox.getChildren().addAll(registerBtn, backBtn);
-
-        // Scroll untuk form
-        VBox scrollContent = new VBox(0);
-        scrollContent.setPadding(new Insets(0, 0, 0, 0));
-        scrollContent.setAlignment(Pos.TOP_CENTER);
-        scrollContent.setStyle("-fx-background-color: #f8fafb;");
-        scrollContent.getChildren().addAll(form, buttonBox);
-
-        ScrollPane scrollPane = new ScrollPane(scrollContent);
+        ScrollPane scrollPane = new ScrollPane(form);
         scrollPane.setFitToWidth(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setStyle("-fx-background-color: #f8fafb; -fx-control-inner-background: #f8fafb;");
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        scrollPane.setMaxWidth(550);
+        
+        // Center the scrollpane content
+        VBox centerBox = new VBox(headerBox, scrollPane);
+        centerBox.setAlignment(Pos.TOP_CENTER);
+        centerBox.setSpacing(30);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
-        container.getChildren().addAll(header, scrollPane);
+        container.getChildren().add(centerBox);
         return container;
+    }
+
+    private VBox createFieldGroup(Label label, javafx.scene.control.Control field, Label error) {
+        VBox group = new VBox(8);
+        group.getChildren().addAll(label, field, error);
+        return group;
     }
 
     private void handleRegistration() {
@@ -283,52 +270,83 @@ public class QuickPatientRegistrationView {
         boolean valid = true;
 
         // Validasi Nama
-        if (name.isEmpty() || name.length() < 3) {
+        if (name.isEmpty()) {
+            nameError.setText("Nama pasien wajib diisi");
+            nameError.setVisible(true);
+            nameField.setStyle(fieldErrorStyle());
+            valid = false;
+        } else if (name.length() < 3) {
             nameError.setText("Nama minimal 3 karakter");
             nameError.setVisible(true);
+            nameField.setStyle(fieldErrorStyle());
             valid = false;
         } else {
             nameError.setVisible(false);
+            nameField.setStyle(fieldStyle());
         }
 
         // Validasi No. Telepon
-        if (phone.isEmpty() || !phone.matches("\\d{10,13}")) {
-            phoneError.setText("No. telepon harus 10-13 digit angka");
+        if (phone.isEmpty()) {
+            phoneError.setText("Nomor telepon wajib diisi");
             phoneError.setVisible(true);
+            phoneField.setStyle(fieldErrorStyle());
+            valid = false;
+        } else if (!phone.matches("\\d{10,13}")) {
+            phoneError.setText("Nomor telepon harus 10-13 digit angka");
+            phoneError.setVisible(true);
+            phoneField.setStyle(fieldErrorStyle());
             valid = false;
         } else {
             phoneError.setVisible(false);
+            phoneField.setStyle(fieldStyle());
         }
 
         // Validasi Email (WAJIB)
         if (email.isEmpty()) {
-            emailError.setText("Email harus diisi");
+            emailError.setText("Email wajib diisi");
             emailError.setVisible(true);
+            emailField.setStyle(fieldErrorStyle());
             valid = false;
         } else if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
-            emailError.setText("Email format tidak valid");
+            emailError.setText("Format email tidak valid");
             emailError.setVisible(true);
+            emailField.setStyle(fieldErrorStyle());
             valid = false;
         } else {
             emailError.setVisible(false);
+            emailField.setStyle(fieldStyle());
         }
 
         // Validasi Alamat
-        if (address.isEmpty() || address.length() < 5) {
+        if (address.isEmpty()) {
+            addressError.setText("Alamat lengkap wajib diisi");
+            addressError.setVisible(true);
+            addressField.setStyle(fieldErrorStyle());
+            valid = false;
+        } else if (address.length() < 5) {
             addressError.setText("Alamat minimal 5 karakter");
             addressError.setVisible(true);
+            addressField.setStyle(fieldErrorStyle());
             valid = false;
         } else {
             addressError.setVisible(false);
+            addressField.setStyle(fieldStyle());
         }
 
         // Validasi Keluhan
-        if (symptoms.isEmpty() || symptoms.length() < 3) {
+        if (symptoms.isEmpty()) {
+            symptomsError.setText("Keluhan/Gejala wajib diisi");
+            symptomsError.setVisible(true);
+            symptomsField.setStyle(fieldErrorStyle());
+            valid = false;
+        } else if (symptoms.length() < 3) {
             symptomsError.setText("Keluhan minimal 3 karakter");
             symptomsError.setVisible(true);
+            symptomsField.setStyle(fieldErrorStyle());
             valid = false;
         } else {
             symptomsError.setVisible(false);
+            symptomsField.setStyle(fieldStyle());
         }
 
         if (!valid) {
@@ -338,7 +356,6 @@ public class QuickPatientRegistrationView {
         // Show loading state
         registerBtn.setDisable(true);
         registerBtn.setText("Sedang Memproses...");
-        backBtn.setDisable(true);
         
         // Run in background thread
         new Thread(() -> {
@@ -367,25 +384,19 @@ public class QuickPatientRegistrationView {
 
                     // Reset button state
                     registerBtn.setDisable(false);
-                    registerBtn.setText("Daftar Sekarang");
-                    backBtn.setDisable(false);
-
-                    // Kembali ke login
-                    navigateBackToLogin();
+                    registerBtn.setText("Daftar Antrian");
                 });
             } catch (SQLException e) {
                 javafx.application.Platform.runLater(() -> {
                     showError("Gagal Mendaftar", "Database Error: " + e.getMessage());
                     registerBtn.setDisable(false);
-                    registerBtn.setText("Daftar Sekarang");
-                    backBtn.setDisable(false);
+                    registerBtn.setText("Daftar Antrian");
                 });
             } catch (Exception e) {
                 javafx.application.Platform.runLater(() -> {
                     showError("Gagal Mendaftar", "Terjadi kesalahan: " + e.getMessage());
                     registerBtn.setDisable(false);
-                    registerBtn.setText("Daftar Sekarang");
-                    backBtn.setDisable(false);
+                    registerBtn.setText("Daftar Antrian");
                 });
             }
         }).start();
@@ -482,49 +493,58 @@ public class QuickPatientRegistrationView {
         }
     }
 
-    private void navigateBackToLogin() {
-        if (hostStage != null && hostStage.getScene() != null) {
-            hostStage.getScene().setRoot(LoginView.createRoot(hostStage));
-        }
-    }
-
     private Label errorLabel() {
         Label label = new Label();
-        label.setTextFill(Color.web("#c92a2a"));
-        label.setFont(Font.font(12));
+        label.setTextFill(Color.web("#dc2626"));
+        label.setFont(Font.font("Segoe UI", 13));
         label.setVisible(false);
-        label.setPadding(new Insets(4, 0, 0, 0));
+        label.setPadding(new Insets(5, 0, 0, 0));
+        label.setStyle("-fx-text-fill: #dc2626; -fx-font-size: 13px;");
         return label;
     }
 
     private String fieldStyle() {
-        return "-fx-border-color: #e2e8f0; " +
+        return "-fx-background-color: #ffffff; " +
+               "-fx-border-color: #94a3b8; " +
+               "-fx-border-width: 1.5; " +
                "-fx-border-radius: 8; " +
-               "-fx-padding: 10; " +
-               "-fx-font-size: 13; " +
-               "-fx-text-fill: #0f172a; " +
-               "-fx-control-inner-background: white; " +
-               "-fx-focus-color: #0ea5e9; " +
-               "-fx-faint-focus-color: rgba(14, 165, 233, 0.2);";
+               "-fx-background-radius: 8; " +
+               "-fx-padding: 12; " +
+               "-fx-font-size: 14; " +
+               "-fx-text-fill: #000000; " +
+               "-fx-prompt-text-fill: #94a3b8;";
+    }
+
+    private String fieldErrorStyle() {
+        return "-fx-background-color: #fef2f2; " +
+               "-fx-border-color: #dc2626; " +
+               "-fx-border-width: 2; " +
+               "-fx-border-radius: 8; " +
+               "-fx-background-radius: 8; " +
+               "-fx-padding: 12; " +
+               "-fx-font-size: 14; " +
+               "-fx-text-fill: #000000; " +
+               "-fx-prompt-text-fill: #94a3b8;";
     }
 
     private String buttonPrimaryStyle() {
-        return "-fx-background-color: linear-gradient(to right, #0ea5e9, #0284c7); " +
+        return "-fx-background-color: #0ea5e9; " +
                "-fx-text-fill: white; " +
-               "-fx-font-size: 14; " +
+               "-fx-font-size: 16; " +
                "-fx-font-weight: bold; " +
-               "-fx-border-radius: 8; " +
+               "-fx-background-radius: 8; " +
                "-fx-cursor: hand; " +
-               "-fx-effect: dropshadow(gaussian, rgba(14, 165, 233, 0.3), 8, 0, 0, 2);";
+               "-fx-effect: dropshadow(gaussian, rgba(14, 165, 233, 0.4), 10, 0, 0, 2);";
     }
 
-    private String buttonSecondaryStyle() {
-        return "-fx-background-color: #e2e8f0; " +
-               "-fx-text-fill: #334155; " +
-               "-fx-font-size: 14; " +
+    private String buttonPrimaryHoverStyle() {
+        return "-fx-background-color: #0284c7; " +
+               "-fx-text-fill: white; " +
+               "-fx-font-size: 16; " +
                "-fx-font-weight: bold; " +
-               "-fx-border-radius: 8; " +
-               "-fx-cursor: hand;";
+               "-fx-background-radius: 8; " +
+               "-fx-cursor: hand; " +
+               "-fx-effect: dropshadow(gaussian, rgba(14, 165, 233, 0.6), 12, 0, 0, 3);";
     }
 
     private void showSuccess(String title, String message) {
