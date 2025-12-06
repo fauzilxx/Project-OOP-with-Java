@@ -21,6 +21,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
+import javafx.scene.image.Image;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Spinner;
@@ -406,7 +407,17 @@ public class DrugOrderView {
     }
 
     private void showAlert(String t, String m) {
-        new Alert(Alert.AlertType.INFORMATION, m, ButtonType.OK).showAndWait();
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(t);
+        alert.setHeaderText(null);
+        alert.setContentText(m);
+        try {
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(new Image(getClass().getResourceAsStream("/assets/hospital-logo.jpg")));
+        } catch (Exception e) {
+            System.err.println("Gagal load icon: " + e.getMessage());
+        }
+        alert.showAndWait();
     }
 
     private Patient findPatient(String rm) {

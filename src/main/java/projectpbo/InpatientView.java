@@ -12,13 +12,13 @@ import javafx.geometry.Side;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -243,14 +243,14 @@ public class InpatientView {
         }
         // Check for duplicate patient number
         if (Inpatient.isPatientNumberExists(fNumber.getText().trim())) {
-            new Alert(Alert.AlertType.ERROR, "Nomor Pasien sudah terdaftar!", ButtonType.OK).showAndWait();
+            createAlert(Alert.AlertType.ERROR, "Nomor Pasien sudah terdaftar!").showAndWait();
             return;
         }
 
         // Validate Doctor
         String doctorName = fDoctor.getText().trim();
         if (!doctorName.isEmpty() && !Doctor.exists(doctorName)) {
-            new Alert(Alert.AlertType.ERROR, "Dokter tidak ada dalam daftar!", ButtonType.OK).showAndWait();
+            createAlert(Alert.AlertType.ERROR, "Dokter tidak ada dalam daftar!").showAndWait();
             return;
         }
 
@@ -285,6 +285,20 @@ public class InpatientView {
     }
     private String primaryTextButton() {
         return "-fx-background-color:transparent; -fx-text-fill:#0f766e; -fx-font-weight:600;";
+    }
+
+    private Alert createAlert(Alert.AlertType type, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(type == Alert.AlertType.ERROR ? "Error" : "Info");
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        try {
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(new Image(getClass().getResourceAsStream("/assets/hospital-logo.jpg")));
+        } catch (Exception e) {
+            System.err.println("Gagal load icon: " + e.getMessage());
+        }
+        return alert;
     }
 
     // Inner Inpatient class removed; using database-backed model in separate file.

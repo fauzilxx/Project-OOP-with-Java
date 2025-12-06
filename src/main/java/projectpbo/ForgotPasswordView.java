@@ -285,19 +285,13 @@ public class ForgotPasswordView {
                 sendBtn.setText("Kirim Kode OTP");
 
                 if (sent) {
-                    Alert a = new Alert(Alert.AlertType.INFORMATION);
-                    a.setTitle("Reset Password");
-                    a.setHeaderText(null);
-                    a.setContentText("Kode OTP telah dikirim ke " + email + ". Periksa email Anda.");
+                    Alert a = createAlert(Alert.AlertType.INFORMATION, "Reset Password", "Kode OTP telah dikirim ke " + email + ". Periksa email Anda.");
                     a.showAndWait();
 
                     // Show OTP + new password fields
                     setResetFieldsVisible(true);
                 } else {
-                    Alert a = new Alert(Alert.AlertType.ERROR);
-                    a.setTitle("Gagal Mengirim OTP");
-                    a.setHeaderText(null);
-                    a.setContentText("Tidak dapat mengirim OTP. Pastikan email terdaftar dan konfigurasi SMTP benar.");
+                    Alert a = createAlert(Alert.AlertType.ERROR, "Gagal Mengirim OTP", "Tidak dapat mengirim OTP. Pastikan email terdaftar dan konfigurasi SMTP benar.");
                     a.showAndWait();
                 }
             });
@@ -330,10 +324,7 @@ public class ForgotPasswordView {
         resetError.setVisible(false);
         boolean ok = AccountService.resetPassword(email, otp, np);
         if (ok) {
-            Alert a = new Alert(Alert.AlertType.INFORMATION);
-            a.setTitle("Berhasil");
-            a.setHeaderText(null);
-            a.setContentText("Password berhasil direset. Silakan login.");
+            Alert a = createAlert(Alert.AlertType.INFORMATION, "Berhasil", "Password berhasil direset. Silakan login.");
             a.showAndWait();
             navigateLogin();
         } else {
@@ -381,6 +372,20 @@ public class ForgotPasswordView {
 
     private String fieldErrorStyle() {
         return "-fx-background-color: #fff6f6; -fx-border-color: #e06b6b; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 0 10 0 10; -fx-font-size: 13;";
+    }
+
+    private Alert createAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        try {
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(new Image(getClass().getResourceAsStream("/assets/hospital-logo.jpg")));
+        } catch (Exception e) {
+            System.err.println("Gagal load icon: " + e.getMessage());
+        }
+        return alert;
     }
 
     private String buttonPrimary() {

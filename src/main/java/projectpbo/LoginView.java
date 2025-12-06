@@ -410,19 +410,28 @@ public class LoginView {
             passwordField.clear();
             passwordVisibleField.clear();
         } else {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Login Failed");
-            alert.setHeaderText(null);
-            alert.setContentText("Username atau password salah, atau akun belum terdaftar.");
+            Alert alert = createAlert(Alert.AlertType.ERROR, "Login Failed", 
+                "Username atau password salah, atau akun belum terdaftar.");
             alert.showAndWait();
         }
     }
 
+    private Alert createAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        try {
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(new Image(getClass().getResourceAsStream("/assets/hospital-logo.jpg")));
+        } catch (Exception e) {
+            System.err.println("Gagal load icon: " + e.getMessage());
+        }
+        return alert;
+    }
+
     private void showInfo(String title, String content) {
-        Alert a = new Alert(Alert.AlertType.INFORMATION);
-        a.setTitle(title);
-        a.setHeaderText(null);
-        a.setContentText(content);
+        Alert a = createAlert(Alert.AlertType.INFORMATION, title, content);
         a.showAndWait();
     }
 

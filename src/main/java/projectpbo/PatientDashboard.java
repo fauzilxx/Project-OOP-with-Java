@@ -547,19 +547,27 @@ public class PatientDashboard {
                "-fx-effect: dropshadow(gaussian, rgba(14, 165, 233, 0.6), 12, 0, 0, 3);";
     }
 
-    private void showSuccess(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+    private Alert createAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
         alert.setTitle(title);
         alert.setHeaderText(null);
-        alert.setContentText(message);
+        alert.setContentText(content);
+        try {
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(new Image(getClass().getResourceAsStream("/assets/hospital-logo.jpg")));
+        } catch (Exception e) {
+            System.err.println("Gagal load icon: " + e.getMessage());
+        }
+        return alert;
+    }
+
+    private void showSuccess(String title, String message) {
+        Alert alert = createAlert(Alert.AlertType.INFORMATION, title, message);
         alert.showAndWait();
     }
 
     private void showError(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
+        Alert alert = createAlert(Alert.AlertType.ERROR, title, message);
         alert.showAndWait();
     }
 }

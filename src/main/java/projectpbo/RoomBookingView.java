@@ -217,33 +217,33 @@ public class RoomBookingView {
 
             // 1. Check if patient exists in Inpatient records
             if (!Inpatient.exists(pName)) {
-                new Alert(Alert.AlertType.ERROR, "Nama pasien tidak ada di data Rawat Inap", ButtonType.OK).showAndWait();
+                createAlert(Alert.AlertType.ERROR, "Nama pasien tidak ada di data Rawat Inap").showAndWait();
                 return;
             }
 
             // 2. Sync/Validate Address
             String registeredAddr = Inpatient.getAddress(pName);
             if (registeredAddr != null && !registeredAddr.isBlank() && !registeredAddr.equalsIgnoreCase(pAddr)) {
-                new Alert(Alert.AlertType.ERROR, "Alamat tidak sesuai dengan data pasien (" + registeredAddr + ")", ButtonType.OK).showAndWait();
+                createAlert(Alert.AlertType.ERROR, "Alamat tidak sesuai dengan data pasien (" + registeredAddr + ")").showAndWait();
                 return;
             }
 
             // 3. Check if patient already has an active booking
             if (RoomBooking.hasActiveBooking(pName)) {
-                new Alert(Alert.AlertType.ERROR, "Pasien sudah memiliki kamar pasien (Booking Aktif)", ButtonType.OK).showAndWait();
+                createAlert(Alert.AlertType.ERROR, "Pasien sudah memiliki kamar pasien (Booking Aktif)").showAndWait();
                 return;
             }
 
             // 4. Check Room Availability
             int occupied = RoomBooking.getOccupiedBeds(selectedRoom.name);
             if (occupied >= selectedRoom.totalBeds) {
-                new Alert(Alert.AlertType.ERROR, "Kamar penuh! Silakan pilih kamar lain.", ButtonType.OK).showAndWait();
+                createAlert(Alert.AlertType.ERROR, "Kamar penuh! Silakan pilih kamar lain.").showAndWait();
                 return;
             }
 
             // 5. Validate Check-In Date
             if (fCheckIn.getValue().isBefore(LocalDate.now())) {
-                new Alert(Alert.AlertType.ERROR, "Tanggal check-in tidak boleh sebelum hari ini!", ButtonType.OK).showAndWait();
+                createAlert(Alert.AlertType.ERROR, "Tanggal check-in tidak boleh sebelum hari ini!").showAndWait();
                 return;
             }
 
@@ -331,7 +331,7 @@ public class RoomBookingView {
         }
         LocalDate in = LocalDate.parse(sel.getCheckIn());
         if (out.isBefore(in)) {
-            new Alert(Alert.AlertType.ERROR, "Tanggal checkout tidak boleh sebelum check-in!", ButtonType.OK).showAndWait();
+            createAlert(Alert.AlertType.ERROR, "Tanggal checkout tidak boleh sebelum check-in!").showAndWait();
             return;
         }
         long days = Math.max(1, ChronoUnit.DAYS.between(in, out));
@@ -357,7 +357,7 @@ public class RoomBookingView {
         
         table.refresh();
         
-        Alert a = new Alert(Alert.AlertType.INFORMATION, "Total biaya: " + formatCurrency(cost) + " (" + days + " hari)\nPasien telah dihapus dari daftar rawat inap.", ButtonType.OK);
+        Alert a = createAlert(Alert.AlertType.INFORMATION, "Total biaya: " + formatCurrency(cost) + " (" + days + " hari)\nPasien telah dihapus dari daftar rawat inap.");
         a.setHeaderText("Checkout Berhasil");
         a.setTitle("Informasi");
         a.showAndWait();
@@ -415,7 +415,7 @@ public class RoomBookingView {
         infoBtn.setOnMouseEntered(e -> infoBtn.setStyle(hoverPrimaryButton()));
         infoBtn.setOnMouseExited(e -> infoBtn.setStyle(primaryButton()));
         infoBtn.setCursor(Cursor.HAND);
-        infoBtn.setOnAction(e -> new Alert(Alert.AlertType.INFORMATION, rt.name+"\n"+rt.description+"\nHarga: "+formatCurrency(rt.pricePerDay)+" / hari\nKapasitas: "+rt.totalBeds+" bed", ButtonType.OK).showAndWait());
+        infoBtn.setOnAction(e -> createAlert(Alert.AlertType.INFORMATION, rt.name+"\n"+rt.description+"\nHarga: "+formatCurrency(rt.pricePerDay)+" / hari\nKapasitas: "+rt.totalBeds+" bed").showAndWait());
         
         card.setCursor(Cursor.HAND);
         card.getChildren().addAll(imgView, name, desc, availability, price, infoBtn);
@@ -440,6 +440,20 @@ public class RoomBookingView {
     }
     private String primaryTextButton(){
         return "-fx-background-color:transparent; -fx-text-fill:#0f766e; -fx-font-weight:600;";
+    }
+
+    private Alert createAlert(Alert.AlertType type, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(type == Alert.AlertType.ERROR ? "Error" : "Informasi");
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        try {
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(new Image(getClass().getResourceAsStream("/assets/hospital-logo.jpg")));
+        } catch (Exception e) {
+            System.err.println("Gagal load icon: " + e.getMessage());
+        }
+        return alert;
     }
 
     // Data Classes

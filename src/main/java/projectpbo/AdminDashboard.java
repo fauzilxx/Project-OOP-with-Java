@@ -109,9 +109,9 @@ public class AdminDashboard {
         body.setAlignment(Pos.TOP_CENTER);
 
         GridPane grid = new GridPane();
-        grid.setHgap(32);
-        grid.setVgap(32);
-        grid.setAlignment(Pos.CENTER);
+            grid.setHgap(32);
+            grid.setVgap(32);
+            grid.setAlignment(Pos.CENTER);
 
         grid.add(createDashboardCard("bed.png", "PASIEN RAWAT INAP", String.valueOf(Inpatient.count()), "Pasien", "#3b82f6", () -> {
             if (stage != null && stage.getScene() != null) {
@@ -145,15 +145,15 @@ public class AdminDashboard {
         }), 2, 1);
 
         HBox bottom = new HBox(32);
-        bottom.setAlignment(Pos.CENTER);
+            bottom.setAlignment(Pos.CENTER);
         VBox patientList = createPatientList();
         VBox doctorList = createDoctorList();
-        HBox.setHgrow(patientList, Priority.ALWAYS);
-        HBox.setHgrow(doctorList, Priority.ALWAYS);
-        bottom.getChildren().addAll(patientList, doctorList);
+            HBox.setHgrow(patientList, Priority.ALWAYS);
+            HBox.setHgrow(doctorList, Priority.ALWAYS);
+            bottom.getChildren().addAll(patientList, doctorList);
 
-        body.getChildren().addAll(grid, bottom);
-        VBox.setVgrow(bottom, Priority.ALWAYS);
+            body.getChildren().addAll(grid, bottom);
+            VBox.setVgrow(bottom, Priority.ALWAYS);
         return body;
     }
 
@@ -179,29 +179,29 @@ public class AdminDashboard {
 
     private VBox createDashboardCard(String iconName, String title, String value, String subtitle, String iconColor, Runnable action) {
         VBox card = new VBox(8);
-        card.setPrefSize(290, 140);
-        card.setPadding(new Insets(20));
-        card.setStyle("-fx-background-color:white; -fx-background-radius:12; -fx-cursor:hand;");
+            card.setPrefSize(290, 140);
+            card.setPadding(new Insets(20));
+            card.setStyle("-fx-background-color:white; -fx-background-radius:12; -fx-cursor:hand;");
         DropShadow baseShadow = new DropShadow(15, Color.rgb(0, 0, 0, 0.05));
         DropShadow hoverShadow = new DropShadow(28, Color.rgb(0, 0, 0, 0.18));
-        card.setEffect(baseShadow);
+            card.setEffect(baseShadow);
 
         ImageView icon = createIcon("/assets/" + iconName, 24, iconColor);
         Label titleLabel = new Label(title);
-        titleLabel.setFont(Font.font("System", FontWeight.MEDIUM, 13));
-        titleLabel.setTextFill(Color.web("#6b7280"));
+            titleLabel.setFont(Font.font("System", FontWeight.MEDIUM, 13));
+            titleLabel.setTextFill(Color.web("#6b7280"));
         Label valueLabel = new Label(value);
-        valueLabel.setFont(Font.font("System", FontWeight.BOLD, 32));
-        valueLabel.setTextFill(Color.web("#1f2937"));
+            valueLabel.setFont(Font.font("System", FontWeight.BOLD, 32));
+            valueLabel.setTextFill(Color.web("#1f2937"));
         Label subtitleLabel = new Label(subtitle);
-        subtitleLabel.setFont(Font.font("System", 12));
-        subtitleLabel.setTextFill(Color.web("#9ca3af"));
+            subtitleLabel.setFont(Font.font("System", 12));
+            subtitleLabel.setTextFill(Color.web("#9ca3af"));
         HBox valueBox = new HBox(8, valueLabel, subtitleLabel);
-        valueBox.setAlignment(Pos.BASELINE_LEFT);
+            valueBox.setAlignment(Pos.BASELINE_LEFT);
         VBox textContent = new VBox(4, titleLabel, valueBox);
         HBox content = new HBox(16, icon, textContent);
-        content.setAlignment(Pos.CENTER_LEFT);
-        card.getChildren().add(content);
+            content.setAlignment(Pos.CENTER_LEFT);
+            card.getChildren().add(content);
 
         card.setOnMouseClicked(e -> {
             if (action != null) {
@@ -247,25 +247,25 @@ public class AdminDashboard {
 
     private VBox createTitledList(String title, String searchPrompt, ObservableList<String> items) {
         VBox container = new VBox(12);
-        container.setStyle("-fx-background-color:white; -fx-padding:20; -fx-background-radius:12;");
-        container.setEffect(new DropShadow(15, Color.rgb(0, 0, 0, 0.05)));
+            container.setStyle("-fx-background-color:white; -fx-padding:20; -fx-background-radius:12;");
+            container.setEffect(new DropShadow(15, Color.rgb(0, 0, 0, 0.05)));
         VBox.setVgrow(container, Priority.ALWAYS);
         Label label = new Label(title);
-        label.setFont(Font.font("System", FontWeight.BOLD, 14));
-        label.setTextFill(Color.web("#1f2937"));
+            label.setFont(Font.font("System", FontWeight.BOLD, 14));
+            label.setTextFill(Color.web("#1f2937"));
 
         StackPane searchBox = new StackPane();
         TextField searchField = new TextField();
-        searchField.setPromptText(searchPrompt);
-        searchField.setPadding(new Insets(0, 0, 0, 36));
-        searchField.setPrefHeight(40);
-        searchField.setStyle("-fx-background-radius:8; -fx-border-radius:8; -fx-background-color:#f3f4f6; -fx-border-color:#e5e7eb;");
+            searchField.setPromptText(searchPrompt);
+            searchField.setPadding(new Insets(0, 0, 0, 36));
+            searchField.setPrefHeight(40);
+            searchField.setStyle("-fx-background-radius:8; -fx-border-radius:8; -fx-background-color:#f3f4f6; -fx-border-color:#e5e7eb;");
         ImageView searchIcon = createIcon("/assets/search_icon.png", 14, "#9ca3af");
-        StackPane.setAlignment(searchIcon, Pos.CENTER_LEFT);
-        StackPane.setMargin(searchIcon, new Insets(0, 0, 0, 12));
-        searchBox.getChildren().addAll(searchField, searchIcon);
-        searchBox.setOnMouseEntered(e -> searchField.setStyle("-fx-background-radius:8; -fx-border-radius:8; -fx-background-color:#edf2f7; -fx-border-color:#cbd5e1;"));
-        searchBox.setOnMouseExited(e -> searchField.setStyle("-fx-background-radius:8; -fx-border-radius:8; -fx-background-color:#f3f4f6; -fx-border-color:#e5e7eb;"));
+            StackPane.setAlignment(searchIcon, Pos.CENTER_LEFT);
+            StackPane.setMargin(searchIcon, new Insets(0, 0, 0, 12));
+            searchBox.getChildren().addAll(searchField, searchIcon);
+            searchBox.setOnMouseEntered(e -> searchField.setStyle("-fx-background-radius:8; -fx-border-radius:8; -fx-background-color:#edf2f7; -fx-border-color:#cbd5e1;"));
+            searchBox.setOnMouseExited(e -> searchField.setStyle("-fx-background-radius:8; -fx-border-radius:8; -fx-background-color:#f3f4f6; -fx-border-color:#e5e7eb;"));
 
         FilteredList<String> filtered = new FilteredList<>(items, p -> true);
         searchField.textProperty().addListener((obs, old, val) -> filtered.setPredicate(it -> val == null || val.isBlank() || it.toLowerCase().contains(val.toLowerCase())));
@@ -339,11 +339,22 @@ public class AdminDashboard {
         st.play();
     }
 
+    private Alert createAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        try {
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(new Image(getClass().getResourceAsStream("/assets/hospital-logo.jpg")));
+        } catch (Exception e) {
+            System.err.println("Gagal load icon: " + e.getMessage());
+        }
+        return alert;
+    }
+
     private void showInfo(String title, String msg) {
-        Alert a = new Alert(Alert.AlertType.INFORMATION);
-        a.setTitle(title);
-        a.setHeaderText(null);
-        a.setContentText(msg);
+        Alert a = createAlert(Alert.AlertType.INFORMATION, title, msg);
         a.showAndWait();
     }
 }

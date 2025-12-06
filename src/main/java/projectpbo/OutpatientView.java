@@ -10,7 +10,6 @@ import javafx.geometry.Side;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.DatePicker;
@@ -19,6 +18,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -259,7 +259,7 @@ public class OutpatientView {
         // Validate Doctor
         String doctorName = fDoctor.getText().trim();
         if (!doctorName.isEmpty() && !Doctor.exists(doctorName)) {
-            new Alert(Alert.AlertType.ERROR, "Dokter tidak ada dalam daftar!", ButtonType.OK).showAndWait();
+            createAlert(Alert.AlertType.ERROR, "Error", "Dokter tidak ada dalam daftar!").showAndWait();
             return;
         }
 
@@ -280,17 +280,11 @@ public class OutpatientView {
                 Outpatient temp = new Outpatient(fName.getText().trim(), number, fComplaint.getText().trim(), dateStr + " " + timeStr, fDoctor.getText().trim(), fStatus.getValue());
                 if (Outpatient.update(temp)) {
                     masterData.setAll(Outpatient.fetchAll()); // Reload to reflect changes
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Info");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Data pasien lama diperbarui (Kunjungan Ulang).");
+                    Alert alert = createAlert(Alert.AlertType.INFORMATION, "Info", "Data pasien lama diperbarui (Kunjungan Ulang).");
                     alert.showAndWait();
                 }
             } else {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error");
-                alert.setHeaderText(null);
-                alert.setContentText("Nomor pasien sudah digunakan dan status belum Selesai!");
+                Alert alert = createAlert(Alert.AlertType.ERROR, "Error", "Nomor pasien sudah digunakan dan status belum Selesai!");
                 alert.showAndWait();
                 return;
             }
@@ -341,6 +335,20 @@ public class OutpatientView {
 
     private String primaryTextButton() {
         return "-fx-background-color:transparent; -fx-text-fill:#0f766e; -fx-font-weight:600;";
+    }
+
+    private Alert createAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        try {
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(new Image(getClass().getResourceAsStream("/assets/hospital-logo.jpg")));
+        } catch (Exception e) {
+            System.err.println("Gagal load icon: " + e.getMessage());
+        }
+        return alert;
     }
 
     // Nested Outpatient class removed; using DB-backed model Outpatient.java

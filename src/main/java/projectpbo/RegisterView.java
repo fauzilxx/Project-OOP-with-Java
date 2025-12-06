@@ -331,41 +331,39 @@ public class RegisterView {
 
         // Cek duplikasi sebelum insert
         if (DBConnection.isUsernameRegistered(username)) {
-            Alert a = new Alert(Alert.AlertType.ERROR);
-            a.setTitle("Registrasi Gagal");
-            a.setHeaderText(null);
-            a.setContentText("Username sudah terdaftar, pilih username lain.");
-            a.showAndWait();
+            createAlert(Alert.AlertType.ERROR, "Registrasi Gagal", "Username sudah terdaftar, pilih username lain.").showAndWait();
             return;
         }
         if (DBConnection.isEmailRegistered(email)) {
-            Alert a = new Alert(Alert.AlertType.ERROR);
-            a.setTitle("Registrasi Gagal");
-            a.setHeaderText(null);
-            a.setContentText("Email sudah terdaftar, gunakan email lain.");
-            a.showAndWait();
+            createAlert(Alert.AlertType.ERROR, "Registrasi Gagal", "Email sudah terdaftar, gunakan email lain.").showAndWait();
             return;
         }
 
 
         // Register user as patient automatically, simpan nomor HP
         if (DBConnection.register(username, email, phone, pass, "patient")) {
-            Alert a = new Alert(Alert.AlertType.INFORMATION);
-            a.setTitle("Registrasi Berhasil");
-            a.setHeaderText(null);
-            a.setContentText("Akun " + username + " berhasil dibuat. Silakan login.");
-            a.showAndWait();
+            createAlert(Alert.AlertType.INFORMATION, "Registrasi Berhasil", "Akun " + username + " berhasil dibuat. Silakan login.").showAndWait();
             navigateLogin();
         } else {
-            Alert a = new Alert(Alert.AlertType.ERROR);
-            a.setTitle("Registrasi Gagal");
-            a.setHeaderText(null);
-            a.setContentText("Gagal membuat akun. Coba lagi nanti.");
-            a.showAndWait();
+            createAlert(Alert.AlertType.ERROR, "Registrasi Gagal", "Gagal membuat akun. Coba lagi nanti.").showAndWait();
         }
     }
 
     // UI helpers
+    private Alert createAlert(Alert.AlertType type, String title, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        try {
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(new Image(getClass().getResourceAsStream("/assets/hospital-logo.jpg")));
+        } catch (Exception e) {
+            System.err.println("Gagal load icon: " + e.getMessage());
+        }
+        return alert;
+    }
+
     private HBox iconFieldRow(String icon, TextField field, String prompt) {
         HBox box = new HBox(10);
         box.setAlignment(Pos.CENTER_LEFT);
