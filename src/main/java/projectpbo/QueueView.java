@@ -159,7 +159,7 @@ public class QueueView {
                 
                 // PK cannot be changed
                 String timeRaw = fTime.getText().trim();
-                if (!timeRaw.matches("^[0-2]\\d:[0-5]\\d$")) timeRaw = "00:00";
+                if (!timeRaw.matches("^([01]\\d|2[0-3]):[0-5]\\d$")) timeRaw = "00:00";
                 String today = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy"));
                 sel.patientNameProperty().set(fName.getText().trim());
                 // sel.patientNumberProperty().set(fNumber.getText().trim());
@@ -224,7 +224,7 @@ public class QueueView {
         }
 
         String timeRaw = fTime.getText().trim();
-        if (!timeRaw.matches("^[0-2]\\d:[0-5]\\d$")) timeRaw = "00:00";
+        if (!timeRaw.matches("^([01]\\d|2[0-3]):[0-5]\\d$")) timeRaw = "00:00";
         String today = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy"));
         java.time.LocalDateTime arrival;
         try {

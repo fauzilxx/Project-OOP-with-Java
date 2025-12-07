@@ -130,8 +130,8 @@ public class Queue {
                     int currentCount = dailyQueueCount.get(date);
 
                     if ("Menunggu".equalsIgnoreCase(stat)) {
-                        // Calculate wait time: count * 5 minutes
-                        int waitMinutes = currentCount * 5;
+                        // Calculate wait time: count * 2 minutes
+                        int waitMinutes = currentCount * 2;
                         waitStr = waitMinutes + " menit";
                         // Increment count for next person
                         dailyQueueCount.put(date, currentCount + 1);

@@ -27,6 +27,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
 public class PatientDashboard {
@@ -76,12 +77,12 @@ public class PatientDashboard {
         stack.setStyle("-fx-background-color: linear-gradient(to bottom right, #0ea5e9, #0284c7);");
         stack.setPadding(new Insets(40));
 
-        VBox content = new VBox(24);
+        VBox content = new VBox(28);
         content.setAlignment(Pos.CENTER);
 
         // Logo
         ImageView logoView = new ImageView();
-        logoView.setFitWidth(300);
+        logoView.setFitWidth(220);
         logoView.setPreserveRatio(true);
         try {
             if (getClass().getResource("/assets/hospital-logo.jpg") != null) {
@@ -93,17 +94,112 @@ public class PatientDashboard {
 
         // Branding Text
         Label brandTitle = new Label("Nasihuy Hospital");
-        brandTitle.setFont(Font.font("Segoe UI", FontWeight.BOLD, 32));
+        brandTitle.setFont(Font.font("Segoe UI", FontWeight.BOLD, 28));
         brandTitle.setTextFill(Color.WHITE);
 
         Label brandSubtitle = new Label("Selalu hadir untuk mendukung kebutuhan kesehatan Anda");
-        brandSubtitle.setFont(Font.font("Segoe UI", 18));
+        brandSubtitle.setFont(Font.font("Segoe UI", 15));
         brandSubtitle.setTextFill(Color.web("#e0f2fe"));
+        brandSubtitle.setWrapText(true);
+        brandSubtitle.setMaxWidth(400);
+        brandSubtitle.setAlignment(Pos.CENTER);
 
-        content.getChildren().addAll(logoView, brandTitle, brandSubtitle);
-        stack.getChildren().add(content);
+        // Queue Statistics Section
+        VBox statsContainer = new VBox(16);
+        statsContainer.setAlignment(Pos.CENTER);
+        statsContainer.setMaxWidth(420);
+        
+        // Fetch real-time queue data
+        int totalQueue = 0;
+        int currentQueue = 0;
+        int waitTime = 0;
+        
+        try {
+            Connection conn = DBConnection.getConnection();
+            
+            // Get total queue for today
+            String sqlTotal = "SELECT COUNT(*) as total FROM queues WHERE DATE(registration_time) = CURDATE()";
+            try (var stmt = conn.createStatement(); var rs = stmt.executeQuery(sqlTotal)) {
+                if (rs.next()) {
+                    totalQueue = rs.getInt("total");
+                }
+            }
+            
+            // Get current queue number (highest queue_number being processed today)
+            String sqlCurrent = "SELECT COALESCE(MAX(queue_number), 0) as current FROM queues " +
+                               "WHERE DATE(registration_time) = CURDATE() AND status IN ('Sedang Diperiksa', 'Selesai')";
+            try (var stmt = conn.createStatement(); var rs = stmt.executeQuery(sqlCurrent)) {
+                if (rs.next()) {
+                    currentQueue = rs.getInt("current");
+                }
+            }
+            
+            // Get pending patients count for wait time calculation (only waiting patients)
+            String sqlPending = "SELECT COUNT(*) as pending FROM queues " +
+                               "WHERE status = 'Menunggu' AND DATE(registration_time) = CURDATE()";
+            try (var stmt = conn.createStatement(); var rs = stmt.executeQuery(sqlPending)) {
+                if (rs.next()) {
+                    int pendingCount = rs.getInt("pending");
+                    waitTime = pendingCount * 2; // 2 minutes per patient
+                }
+            }
+            
+            System.out.println("Queue Stats - Total: " + totalQueue + ", Current: " + currentQueue + ", Wait Time: " + waitTime + " mins");
+        } catch (SQLException e) {
+            System.err.println("Error fetching queue stats: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        // Card 1: Total Queue
+        VBox card1 = createQueueStatCard("Banyak Antrian", String.valueOf(totalQueue), "#ffffff", "#0ea5e9");
+        
+        // Card 2: Current Queue
+        VBox card2 = createQueueStatCard("Antrian Saat Ini", String.valueOf(currentQueue), "#ffffff", "#0ea5e9");
+        
+        // Card 3: Wait Time
+        VBox card3 = createQueueStatCard("Perkiraan Waktu Tunggu", waitTime + " Menit", "#ffffff", "#0ea5e9");
+        
+        statsContainer.getChildren().addAll(card1, card2, card3);
+
+        content.getChildren().addAll(logoView, brandTitle, brandSubtitle, statsContainer);
+        
+        // Wrap content in ScrollPane
+        ScrollPane scrollPane = new ScrollPane(content);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+        VBox.setVgrow(content, Priority.ALWAYS);
+        
+        stack.getChildren().add(scrollPane);
 
         return stack;
+    }
+
+    private VBox createQueueStatCard(String title, String value, String bgColor, String textColor) {
+        System.out.println("Creating card: " + title + " | Value: " + value);
+        VBox card = new VBox(8);
+        card.setAlignment(Pos.CENTER);
+        card.setPadding(new Insets(24));
+        card.setStyle(
+            "-fx-background-color: " + bgColor + ";" +
+            "-fx-background-radius: 16;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 10, 0, 0, 2);"
+        );
+        card.setMaxWidth(380);
+        card.setPrefWidth(380);
+
+        Label titleLabel = new Label(title.toUpperCase());
+        titleLabel.setStyle("-fx-font-family: 'Segoe UI'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1f2937;");
+        titleLabel.setWrapText(true);
+        titleLabel.setTextAlignment(TextAlignment.CENTER);
+
+        Label valueLabel = new Label(value);
+        valueLabel.setStyle("-fx-font-family: 'Segoe UI'; -fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: " + textColor + ";");
+        valueLabel.setTextAlignment(TextAlignment.CENTER);
+
+        card.getChildren().addAll(titleLabel, valueLabel);
+        return card;
     }
 
     private HBox buildHeader() {
@@ -460,9 +556,9 @@ public class PatientDashboard {
              var rs = stmt.executeQuery(sql)) {
             if (rs.next()) {
                 int pendingCount = rs.getInt("pending_count");
-                return pendingCount * 5; // 5 menit per pasien
+                return pendingCount * 2; // 2 menit per pasien
             }
-            return 5;
+            return 2;
         }
     }
 

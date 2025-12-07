@@ -211,7 +211,7 @@ public class OutpatientView {
                 // No need to check duplicate here because PK is disabled
                 String dateStr = java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy").format(fDate.getValue());
                 String timeStr = fTime.getText().trim();
-                if (!timeStr.matches("^[0-2]\\d:[0-5]\\d$")) timeStr = "00:00";
+                if (!timeStr.matches("^([01]\\d|2[0-3]):[0-5]\\d$")) timeStr = "00:00";
                 sel.nameProperty().set(fName.getText().trim());
                 // sel.patientNumberProperty().set(fNumber.getText().trim()); // PK cannot be changed
                 sel.complaintProperty().set(fComplaint.getText().trim());
@@ -275,7 +275,7 @@ public class OutpatientView {
                 
                 String dateStr = java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy").format(fDate.getValue());
                 String timeStr = fTime.getText().trim();
-                if (!timeStr.matches("^[0-2]\\d:[0-5]\\d$")) timeStr = "00:00";
+                if (!timeStr.matches("^([01]\\d|2[0-3]):[0-5]\\d$")) timeStr = "00:00";
                 
                 Outpatient temp = new Outpatient(fName.getText().trim(), number, fComplaint.getText().trim(), dateStr + " " + timeStr, fDoctor.getText().trim(), fStatus.getValue());
                 if (Outpatient.update(temp)) {
@@ -292,7 +292,7 @@ public class OutpatientView {
             // New Insert
             String dateStr = java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy").format(fDate.getValue());
             String timeStr = fTime.getText().trim();
-            if (!timeStr.matches("^[0-2]\\d:[0-5]\\d$")) timeStr = "00:00";
+            if (!timeStr.matches("^([01]\\d|2[0-3]):[0-5]\\d$")) timeStr = "00:00";
             String scheduleDisplay = dateStr + " " + timeStr; // for UI
             java.time.LocalDateTime scheduleDb;
             try {
