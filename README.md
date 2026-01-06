@@ -32,38 +32,40 @@ This project emphasizes clean OOP design, separation of concerns, and modular Ja
 - **Abstraction** – Separation between UI, logic, and database
 - **Modular Design** – Feature-based class organization
 
----## 🗂️ Project Structure
+## 🗂️ Project Structure
+
+```text
 Project-OOP-with-Java/
 ├── src/
-│ └── main/
-│ └── java/
-│ └── projectpbo/
-│ ├── Launcher.java
-│ ├── MainApp.java
-│ ├── DBConnection.java
-│ ├── AccountService.java
-│ ├── LoginView.java
-│ ├── RegisterView.java
-│ ├── ForgotPasswordView.java
-│ ├── AdminDashboard.java
-│ ├── PatientDashboard.java
-│ ├── Doctor.java
-│ ├── Inpatient.java
-│ ├── Outpatient.java
-│ ├── Queue.java
-│ ├── QueueView.java
-│ ├── RoomBooking.java
-│ ├── RoomBookingView.java
-│ ├── DrugOrder.java
-│ ├── DrugOrderView.java
-│ ├── Revenue.java
-│ └── RevenueView.java
+│   └── main/
+│       └── java/
+│           └── projectpbo/
+│               ├── Launcher.java
+│               ├── MainApp.java
+│               ├── DBConnection.java
+│               ├── AccountService.java
+│               ├── LoginView.java
+│               ├── RegisterView.java
+│               ├── ForgotPasswordView.java
+│               ├── AdminDashboard.java
+│               ├── PatientDashboard.java
+│               ├── Doctor.java
+│               ├── Inpatient.java
+│               ├── Outpatient.java
+│               ├── Queue.java
+│               ├── QueueView.java
+│               ├── RoomBooking.java
+│               ├── RoomBookingView.java
+│               ├── DrugOrder.java
+│               ├── DrugOrderView.java
+│               ├── Revenue.java
+│               └── RevenueView.java
 ├── lib/
-│ └── mysql-connector-j-9.5.0.jar
+│   └── mysql-connector-j-9.5.0.jar
 ├── pom.xml
 ├── dependency-reduced-pom.xml
 └── README.md
----
+
 
 ## ⚙️ Technologies Used
 
@@ -98,6 +100,7 @@ DBConnection.java
 
 ### 3. Run Application
 mvn clean javafx:run
+
 
 
 
