@@ -1,4 +1,3 @@
-cat << 'EOF' > README.md
 # Project OOP with Java
 
 This project is a **JavaFX-based Hospital Management System** developed to demonstrate the implementation of **Object-Oriented Programming (OOP)** concepts using **Java**, **JavaFX**, **Maven**, and **MySQL**.
@@ -99,5 +98,6 @@ DBConnection.java
 
 ### 3. Run Application
 mvn clean javafx:run
+
 
 
