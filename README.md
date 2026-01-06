@@ -99,7 +99,9 @@ cd Project-OOP-with-Java
 DBConnection.java
 
 ### 3. Run Application
+```
 mvn clean javafx:run
+```
 
 
 
