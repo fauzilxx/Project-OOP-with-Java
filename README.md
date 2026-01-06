@@ -93,13 +93,13 @@ Project-OOP-with-Java/
 ```bash
 git clone https://github.com/fauzilxx/Project-OOP-with-Java.git
 cd Project-OOP-with-Java
-```
 
 ### 2. Configure Database
 DBConnection.java
 
 ### 3. Run Application
 mvn clean javafx:run
+
 
 
 
